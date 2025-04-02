@@ -363,7 +363,7 @@ const ProfessorModal = ({
                     </a>
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-blue-700 mb-3">CS Subdomain</p>
+                    <p className="text-lg font-bold text-blue-700 mb-3">Research Subdomain</p>
                     <p className="text-sm text-gray-900">
                       {professor.cs_subdomain || 'Not specified'}
                     </p>
