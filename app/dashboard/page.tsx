@@ -238,12 +238,6 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Display Email (Read-only) */}
-        <div className="mb-6">
-          <label className="block font-semibold mb-1">Email:</label>
-          <p className="text-black">{user.emailAddresses?.[0]?.emailAddress || 'Not provided'}</p>
-        </div>
-
         {/* Profile Blocks */}
         {editMode ? (
           // Edit Mode: Input fields for editing
