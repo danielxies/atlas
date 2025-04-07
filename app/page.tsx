@@ -13,6 +13,22 @@ export default function LandingPage() {
     router.push('/');
   };
 
+  const testApi = async () => {
+    const response = await fetch('/api/parseresume', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: "https://eowmpqwwtdzpvfdntowq.supabase.co/storage/v1/object/public/profiles/resumes/user_2v9nY5i7JK3dBesAyWD89JcXgEZ-1743743740731.pdf",
+        clerk_id: "user_2v9nY5i7JK3dBesAyWD89JcXgEZ",
+      }),
+    });
+  
+    const result = await response.json();
+    console.log('API response:', result);
+  };
+
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header/Navigation */}
@@ -28,6 +44,8 @@ export default function LandingPage() {
           />
           <h2 className="text-xl font-bold text-blue-800">ResearchConnect</h2>
         </div>
+        
+
         <nav className="hidden md:flex items-center space-x-4">
           <a href="#features" className="text-gray-700 hover:text-blue-600 transition">Features</a>
           {isSignedIn ? (

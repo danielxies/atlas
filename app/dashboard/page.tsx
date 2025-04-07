@@ -35,6 +35,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
 
+  // New state variables for university and major
+  const [university, setUniversity] = useState('');
+  const [major, setMajor] = useState('');
+
   // Fetch profile data from Supabase if available
   useEffect(() => {
     async function fetchProfile() {
@@ -57,6 +61,9 @@ export default function DashboardPage() {
         setSkills(data.skills || []);
         setResumeUrl(data.resume || '');
         setSubscribed(data.subscribed || false);
+        // Set the new fields
+        setUniversity(data.university || '');
+        setMajor(data.major || '');
       }
       setLoading(false);
     }
@@ -103,12 +110,33 @@ export default function DashboardPage() {
       }
       uploadedResumeUrl = publicUrlData.publicUrl;
       setResumeUrl(uploadedResumeUrl);
+
+      console.log('parsing resume');
+      const response = await fetch('/api/parseresume', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: uploadedResumeUrl,
+          clerk_id: user.id,
+        }),
+      });
+      console.log('post parsing');
+      const result = await response.json();
+      if (!response.ok) {
+        console.error('Error parsing resume:', result.error);
+        alert('Failed to parse resume: ' + result.error);
+        return;
+      } else {
+        console.log('Successfully parsed')
+      }
     }
 
     // Retrieve the user's email from Clerk (first email is primary)
     const email = user.emailAddresses?.[0]?.emailAddress || '';
 
-    // Upsert the profile data into Supabase, including the email and subscription status
+    // Upsert the profile data into Supabase, including the email, subscription status, and new fields
     const { error } = await supabase.from('profiles').upsert({
       clerk_id: user.id,
       email,
@@ -120,7 +148,9 @@ export default function DashboardPage() {
       research_interests: researchInterests,
       skills,
       resume: uploadedResumeUrl,
-      subscribed, // New subscription boolean
+      subscribed,
+      university,
+      major,
     });
 
     if (error) {
@@ -223,17 +253,17 @@ export default function DashboardPage() {
         <div className="mb-4">
           {editMode ? (
             <button 
-              className="text-red-600 hover:text-red-800 text-sm font-semibold"
+              className="bg-red-100 text-red-600 text-base font-medium px-5 py-2 rounded-lg hover:bg-red-200 transition"
               onClick={() => setEditMode(false)}
             >
               Cancel
             </button>
           ) : (
             <button 
-              className="text-blue-600 hover:text-blue-800 text-sm font-semibold"
+              className="bg-blue-600 text-white text-base font-medium px-5 py-2 rounded-lg hover:bg-blue-700 transition"
               onClick={() => setEditMode(true)}
             >
-              Edit
+              Edit Profile
             </button>
           )}
         </div>
@@ -292,6 +322,28 @@ export default function DashboardPage() {
                   type="url" 
                   value={github} 
                   onChange={(e) => setGithub(e.target.value)} 
+                  className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                />
+              </div>
+            </div>
+
+            {/* New fields for University and Major */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-semibold mb-1">University:</label>
+                <input 
+                  type="text"
+                  value={university}
+                  onChange={(e) => setUniversity(e.target.value)}
+                  className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                />
+              </div>
+              <div>
+                <label className="block font-semibold mb-1">Major:</label>
+                <input 
+                  type="text"
+                  value={major}
+                  onChange={(e) => setMajor(e.target.value)}
                   className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" 
                 />
               </div>
@@ -428,6 +480,15 @@ export default function DashboardPage() {
               ) : (
                 <p>Not provided</p>
               )}
+            </div>
+            {/* New fields display for University and Major */}
+            <div>
+              <label className="block font-semibold mb-1">University:</label>
+              <p>{university || 'Not provided'}</p>
+            </div>
+            <div>
+              <label className="block font-semibold mb-1">Major:</label>
+              <p>{major || 'Not provided'}</p>
             </div>
             <div>
               <label className="block font-semibold mb-1">LinkedIn URL:</label>

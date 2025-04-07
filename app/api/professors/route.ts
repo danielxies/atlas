@@ -20,6 +20,7 @@ type Professor = {
 
 // Function to read and parse the CSV file
 async function readProfessorData(): Promise<Professor[]> {
+  console.log('getting prof data')
   try {
     const csvFilePath = path.join(process.cwd(), 'scripts', 'data', 'professors_dataset.csv');
     const csvFileContent = fs.readFileSync(csvFilePath, 'utf-8');
@@ -33,6 +34,9 @@ async function readProfessorData(): Promise<Professor[]> {
     if (errors.length > 0) {
       console.error('CSV parsing errors:', errors);
       throw new Error('Failed to parse CSV file');
+    }
+    else{
+      console.log('csv parsing successful')
     }
 
     return data.map((row: any) => {
