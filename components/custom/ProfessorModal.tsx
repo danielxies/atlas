@@ -8,9 +8,10 @@ type ProfessorModalProps = {
   onApply: () => void;
   isApplying: boolean;
   hasApplied: boolean;
+  backupMailtoLink: string; // new prop for backup mailto link
 };
 
-export default function ProfessorModal({ professor, isOpen, onClose, onApply, isApplying, hasApplied }: ProfessorModalProps) {
+export default function ProfessorModal({ professor, isOpen, onClose, onApply, isApplying, hasApplied, backupMailtoLink }: ProfessorModalProps) {
   if (!isOpen || !professor) return null;
 
   return (
@@ -132,6 +133,21 @@ export default function ProfessorModal({ professor, isOpen, onClose, onApply, is
                   'Apply Now'
                 )}
               </button>
+              {/* Backup mailto link block */}
+              {backupMailtoLink && (
+                <p className="text-sm text-center text-gray-600 mt-2">
+                  Didn’t see an email pop-up?
+                  <br />
+                  <a
+                    href={backupMailtoLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 font-medium underline"
+                  >
+                    Click here to email manually
+                  </a>
+                </p>
+              )}
             </div>
           </div>
         </div>

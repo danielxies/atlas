@@ -68,6 +68,8 @@ export default function ResearchOpportunities() {
   // New state for apply button
   const [isApplying, setIsApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  // New state for backup mailto link
+  const [backupMailtoLink, setBackupMailtoLink] = useState('');
 
   // Redirect if not signed in
   useEffect(() => {
@@ -176,6 +178,8 @@ export default function ResearchOpportunities() {
     // Reset apply states when opening a new modal
     setIsApplying(false);
     setHasApplied(false);
+    // Reset backup mailto link when a new professor modal is opened
+    setBackupMailtoLink('');
   };
   const closeModal = () => {
     setIsModalOpen(false);
@@ -269,6 +273,9 @@ export default function ResearchOpportunities() {
         }
       }
       const mailtoLink = `mailto:${professor.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      // Set the backup link
+      setBackupMailtoLink(mailtoLink);
+      // Open the mailto link as usual
       window.open(mailtoLink, '_blank');
       setIsApplying(false);
       setHasApplied(true);
@@ -390,7 +397,7 @@ export default function ResearchOpportunities() {
         )}
       </main>
 
-      {/* Professor Modal with updated apply button props */}
+      {/* Professor Modal with updated apply button props and backup mailto link */}
       <ProfessorModal
         professor={selectedProfessor}
         isOpen={isModalOpen}
@@ -398,6 +405,7 @@ export default function ResearchOpportunities() {
         onApply={() => selectedProfessor && handleComposeEmail(selectedProfessor)}
         isApplying={isApplying}
         hasApplied={hasApplied}
+        backupMailtoLink={backupMailtoLink}
       />
     </div>
   );
