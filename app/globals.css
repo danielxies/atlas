@@ -106,3 +106,24 @@
   font-weight: normal; /* Adjust this as needed */
   font-style: normal; /* Adjust this as needed */
 }
+
+@font-face {
+  font-family: 'alice';
+  src: url('/fonts/Alice-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'vastago';
+  src: url('/fonts/vastago.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'vastagothin';
+  src: url('/fonts/vastagothin.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}

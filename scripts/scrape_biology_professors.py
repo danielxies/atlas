@@ -333,6 +333,73 @@ def save_to_csv(professors_data, filename='biology_professors_dataset.csv'):
     
     print(f"Saved {len(professors_data)} professors to {filepath}")
 
+def classify_research_area(description: str) -> str:
+    """Classify a research description into one of the known research areas using GPT-4o-mini."""
+    if not description or len(description.split()) < 10:
+        return "Not found"
+    prompt = (
+        f"Below is a research description. Choose exactly one research area from the following list: "
+        f"{', '.join(KNOWN_RESEARCH_AREAS_BIO)}.\n\n"
+        f"Research Description:\n{description}\n\n"
+        "Your answer should be ONLY the exact name of one research area from the list."
+    )
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a strict classification assistant."},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=40,  # slightly increased token limit
+            temperature=0.0,
+        )
+        area = response.choices[0].message.content.strip()
+        print("Raw classification response:", area)  # For debugging
+        
+        # Remove quotes and extra whitespace
+        area = area.strip(' "\'')
+        
+        # Check if any of the known research areas appear in the response (case-insensitive)
+        for known in KNOWN_RESEARCH_AREAS_BIO:
+            if known.lower() in area.lower():
+                return known
+        return "Not found"
+    except Exception as e:
+        print("Classification error:", e)
+        return "Not found"
+
+
+
+def assign_subdomains_via_classification(professors):
+    """Assign research subdomains to each professor using a classification model."""
+    print("\nAssigning research subdomains via classification...")
+    for prof in professors:
+        description = prof.get("research_description", "")
+        classified_area = classify_research_area(description)
+        prof["research_subdomain"] = classified_area
+        print(f"Classified {prof.get('name', 'N/A')} as: {classified_area}")
+    return professors
+
+def run_biology_pipeline():
+    """Run the full scraping, summarization, and classification pipeline."""
+    print("Running full biology professor scraping pipeline...")
+    
+    professors = scrape_biology_professors()
+    if not professors:
+        print("No professors scraped. Exiting biology pipeline.")
+        return []
+
+    print("Summarizing research descriptions...")
+    professors = perform_summarization_on_professors(professors)
+
+    print("Classifying research subdomains...")
+    professors = assign_subdomains_via_classification(professors)
+
+    save_to_csv(professors)
+    print("Biology professor data saved.")
+
+    return professors
+
 def main():
     # Test the OpenAI endpoint before starting
     print("Testing OpenAI endpoint with model '4o-mini'...")
@@ -342,13 +409,17 @@ def main():
     professors = scrape_biology_professors()
     print(f"Finished web scraping. Total professors scraped: {len(professors)}\n")
     
-    print("Assigning research subdomains...")
-    professors = assign_subdomains(professors)
+    # Skip the original subdomain parsing
+    # print("Assigning research subdomains...")
+    # professors = assign_subdomains(professors)
     
     print("Starting summarization tasks for research descriptions...")
     professors = perform_summarization_on_professors(professors)
     
-    # Save the data to CSV
+    print("Assigning research subdomains via classification...")
+    professors = assign_subdomains_via_classification(professors)
+    
+    # Save the data to CSV with the new subdomains
     save_to_csv(professors)
     print("Biology professors dataset saved as scripts/data/biology_professors_dataset.csv.")
 

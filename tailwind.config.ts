@@ -20,8 +20,12 @@ const config: Config = {
     extend: {
       fontFamily: {
         cooper: ['cooper', 'medium'],
+        alice: ['alice', 'serif'],
+        vastago: ['vastago', 'sans-serif'],
+        vastagothin: ['vastagothin', 'sans-serif'],
       },
       colors: {
+        'claude-orange': '#d87758',
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

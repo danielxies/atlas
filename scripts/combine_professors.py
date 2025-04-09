@@ -1,8 +1,8 @@
 import os
 import csv
 import pandas as pd
-from scrape_cs_professors import scrape_cs_professors, save_to_csv as save_cs_csv
-from scrape_biology_professors import scrape_biology_professors, save_to_csv as save_bio_csv
+from scrape_cs_professors import run_cs_pipeline
+from scrape_biology_professors import run_biology_pipeline
 
 def combine_professor_data():
     """
@@ -30,8 +30,8 @@ def combine_professor_data():
     print(f"Found {len(bio_df)} Biology professors")
 
     # Rename Biology column 'research_subdomain' to 'cs_subdomain' for consistency if necessary
-    if 'research_subdomain' in bio_df.columns:
-        bio_df = bio_df.rename(columns={'research_subdomain': 'cs_subdomain'})
+    if 'cs_subdomain' in cs_df.columns:
+        cs_df = cs_df.rename(columns={'cs_subdomain': 'research_subdomain'})
 
     # Combine the dataframes
     print("Combining professor data...")
@@ -46,31 +46,28 @@ def combine_professor_data():
 def main():
     print("Starting professor data collection and combination process...")
 
-    # Use a data folder relative to this file
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
     os.makedirs(data_dir, exist_ok=True)
 
-    # Run CS scraper and save CSV if not already present
-    print("\nRunning CS professor scraper...")
-    cs_professors = scrape_cs_professors()
-    if cs_professors:
-        save_cs_csv(cs_professors, filename='cs_professors_dataset.csv')
-    else:
+    # Run CS pipeline
+    print("\nRunning CS professor pipeline...")
+    cs_professors = run_cs_pipeline()
+    if not cs_professors:
         print("No CS professor data scraped.")
 
-    # Run Biology scraper and save CSV if not already present
-    print("\nRunning Biology professor scraper...")
-    bio_professors = scrape_biology_professors()
-    if bio_professors:
-        save_bio_csv(bio_professors, filename='biology_professors_dataset.csv')
-    else:
+    # Run Bio pipeline
+    print("\nRunning Biology professor pipeline...")
+    from scrape_biology_professors import run_biology_pipeline
+    bio_professors = run_biology_pipeline()
+    if not bio_professors:
         print("No Biology professor data scraped.")
 
-    # Combine the two CSV files into a master CSV
+    # Combine into one dataset
     print("\nCombining professor data...")
     combine_professor_data()
     
     print("\nProcess completed successfully!")
+
 
 if __name__ == "__main__":
     main()
