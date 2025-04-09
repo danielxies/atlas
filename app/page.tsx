@@ -34,7 +34,7 @@ export default function LandingPage() {
   // FAQ items
   const faqItems = [
     {
-      question: "Is Atlas free? How do you make money?",
+      question: "Is Atlas free?",
       answer: "Atlas is free for students searching for research opportunities. We make money by partnering with universities and research institutions who pay a subscription fee to feature their opportunities prominently and access our talent pool."
     },
     {
