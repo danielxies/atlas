@@ -381,7 +381,7 @@ def scrape_cs_professors():
                     print(f"Scraped home page details for: {home_details.get('name', 'N/A')}")
             merged_details = merge_details(profile_details, home_details)
             merged_details["profile_link"] = prof_link
-            merged_details["cs_subdomain"] = subdomain
+            merged_details["research_subdomain"] = subdomain
             all_professors.append(merged_details)
             print(f"Finished processing: {merged_details.get('name', 'N/A')} in subdomain: {subdomain}\n")
             time.sleep(1)
@@ -416,6 +416,31 @@ def save_to_csv(professors_data, filename='cs_professors_dataset.csv'):
         writer.writerows(professors_data)
     
     print(f"Saved {len(professors_data)} professors to {filepath}")
+
+def run_cs_pipeline():
+    """
+    Full pipeline for scraping, validating, summarizing, and saving CS professor data.
+    """
+    print("Running full CS professor scraping pipeline...")
+
+    print("Scraping CS professors...")
+    professors = scrape_cs_professors()
+    print(f"Finished web scraping. Total professors scraped: {len(professors)}")
+
+    print("Validating professor details...")
+    for i in range(len(professors)):
+        professors[i] = validate_professor_details(professors[i], cs_courses)
+        print(f"Validated: {professors[i].get('name', 'N/A')}")
+
+    print("Summarizing descriptions and backgrounds...")
+    professors = perform_summarization_on_professors(professors)
+
+    print("Saving CS professor data to CSV...")
+    save_to_csv(professors)
+    print("CS professor dataset saved successfully.")
+
+    return professors
+
 
 def main():
     # Test the OpenAI endpoint before starting.
