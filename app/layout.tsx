@@ -1,28 +1,22 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+'use client';
+
+import './globals.css';
 import { ClerkProvider } from '@clerk/nextjs';
-import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "ResearchConnect",
-  description: "Discover research opportunities",
-};
+import { ThemeProvider } from './lib/hooks/useTheme';
+import { alice, vastago } from './fonts';
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <head>
-          <link rel="icon" href="/icon.png" type="image/png" />
-        </head>
-        <body className={`${inter.className} dark`}>
-          {children}
+      <html lang="en" className={`${alice.variable} ${vastago.variable}`}>
+        <body>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>
