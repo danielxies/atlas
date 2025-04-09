@@ -147,58 +147,30 @@ export default function LandingPage() {
             </DxButton>
           </div>
           
-          {/* Reviews/Stars Line */}
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="flex text-yellow-400">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} size={20} fill="currentColor" />
-              ))}
-            </div>
-            <span className={`${vastago.className} ${isDark ? 'text-[#d1cfbf]' : 'text-gray-700'}`}>
-              Join the many students who use Atlas.
-            </span>
-          </div>
-          
-          {/* Feature Pills */}
-          <div className="flex justify-center gap-2 mb-12">
-            <div className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-100'} ${isDark ? 'text-[#d1cfbf]' : 'text-gray-800'} py-2 px-4 rounded-full font-vastago flex items-center gap-1 text-sm`}>
-              <span>🔍</span> Research Matches
-            </div>
-            <div className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-100'} ${isDark ? 'text-[#d1cfbf]' : 'text-gray-800'} py-2 px-4 rounded-full font-vastago flex items-center gap-1 text-sm`}>
-              <span>⚡</span> Application Copilot
-            </div>
-            <div className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-100'} ${isDark ? 'text-[#d1cfbf]' : 'text-gray-800'} py-2 px-4 rounded-full font-vastago flex items-center gap-1 text-sm`}>
-              <span>📝</span> AI Resume Builder
-            </div>
-            <div className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-gray-100'} ${isDark ? 'text-[#d1cfbf]' : 'text-gray-800'} py-2 px-4 rounded-full font-vastago flex items-center gap-1 text-sm`}>
-              <span>📊</span> Research Tracker
+          {/* Browser/Demo Section - Moved here */}
+          <div className="max-w-5xl mx-auto px-6 mb-[5rem]">
+            <div className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-white'} p-4 rounded-lg shadow-xl overflow-hidden`}>
+              <div className="w-full bg-gray-200 h-8 rounded-t-lg flex items-center px-2 gap-1">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <div className="flex-1 flex justify-center">
+                  <div className="w-1/2 h-5 bg-gray-300 rounded-full"></div>
+                </div>
+              </div>
+              <div className={`w-full ${isDark ? 'bg-[#1a1a1a]' : 'bg-gray-100'} h-96 rounded-b-lg flex items-center justify-center`}>
+                <Image 
+                  src="/scenic.jpg" 
+                  alt="Research platform demonstration" 
+                  width={800} 
+                  height={500}
+                  className="rounded-lg object-cover max-h-80 w-auto"
+                />
+              </div>
             </div>
           </div>
         </div>
         
-        {/* Browser/Demo Section - Moved here */}
-        <div className="max-w-5xl mx-auto px-6 mb-[5rem]">
-          <div className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-white'} p-4 rounded-lg shadow-xl overflow-hidden`}>
-            <div className="w-full bg-gray-200 h-8 rounded-t-lg flex items-center px-2 gap-1">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <div className="flex-1 flex justify-center">
-                <div className="w-1/2 h-5 bg-gray-300 rounded-full"></div>
-              </div>
-            </div>
-            <div className={`w-full ${isDark ? 'bg-[#1a1a1a]' : 'bg-gray-100'} h-96 rounded-b-lg flex items-center justify-center`}>
-              <Image 
-                src="/scenic.jpg" 
-                alt="Research platform demonstration" 
-                width={800} 
-                height={500}
-                className="rounded-lg object-cover max-h-80 w-auto"
-              />
-            </div>
-          </div>
-        </div>
-
         <div className="max-w-6xl mx-auto mb-16 px-6">
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
             {collegeLogos.map((logo, index) => (
