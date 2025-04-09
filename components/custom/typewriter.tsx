@@ -42,7 +42,7 @@ export const TypewriterDaniel = ({
         }
       );
     }
-  }, [isInView]);
+  }, [isInView, animate]);
 
   const renderWords = () => {
     return (

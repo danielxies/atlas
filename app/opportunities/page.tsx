@@ -6,6 +6,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useUser, UserButton } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
+import { Sun, Moon } from 'lucide-react';
+import { useTheme } from '../lib/hooks/useTheme';
+import { alice, vastago } from '../fonts';
 import OpportunityModal, { ResearchOpportunity } from '@/components/custom/OpportunityModal';
 import OpportunityCard from '@/components/custom/OpportunityCard';
 import ProfessorCard, { Professor } from '@/components/custom/ProfessorCard';
@@ -39,6 +42,7 @@ function calculateSimilarity(searchText: string, professor: Professor): number {
 export default function ResearchOpportunities() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
+  const { isDark, setIsDark } = useTheme();
 
   // State variables
   const [professors, setProfessors] = useState<Professor[]>([]);
@@ -48,6 +52,7 @@ export default function ResearchOpportunities() {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [filteredProfessors, setFilteredProfessors] = useState<Professor[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   // New state variables for user profile additional fields
   const [resumeUrl, setResumeUrl] = useState('');
@@ -287,48 +292,55 @@ export default function ResearchOpportunities() {
   };
 
   if (!isLoaded || !isSignedIn || isDataLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#1a1a1a] text-[#d1cfbf]' : 'bg-[#e8e6d9] text-black'}`}>
+        Loading...
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${isDark ? 'bg-[#1a1a1a] text-[#d1cfbf]' : 'bg-[#e8e6d9] text-black'} ${alice.variable} ${vastago.variable} flex flex-col`}>
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Image
-              src="/icon.png"
-              alt="Research Hub Logo"
-              width={36}
-              height={36}
+      <nav className={`w-full px-6 py-4 z-50 ${isDark ? 'bg-[#1a1a1a]' : 'bg-[#e8e6d9]'} shadow-sm`}>
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <Image 
+              src="/icon.png" 
+              alt="Atlas Logo" 
+              width={32} 
+              height={32}
+              onClick={() => router.push('/')} 
               className="cursor-pointer"
-              onClick={() => router.push('/')}
             />
-            <h2 className="text-xl font-bold text-blue-800">ResearchConnect</h2>
+            <span className={`font-vastago ${isDark ? 'text-[#d1cfbf]' : 'text-black'} text-xl font-semibold`}>Atlas</span>
           </div>
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-blue-600 transition">Home</Link>
-            <Link href="/opportunities" className="text-blue-600 font-medium transition">Opportunities</Link>
-            {isSignedIn ? (
-              <>
-                <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 transition">Dashboard</Link>
-                <UserButton afterSignOutUrl="/" />
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="text-gray-700 hover:text-blue-600 transition">Login</Link>
-                <Link href="/signup" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">Sign Up</Link>
-              </>
-            )}
-          </nav>
+
+          {/* Right Side - Theme Toggle and links */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsDark(!isDark)}
+              className={`p-2 rounded-lg ${isDark ? 'text-[#d1cfbf] hover:bg-white/10' : 'text-black hover:bg-black/10'} transition-colors`}
+            >
+              {isDark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <Link href="/opportunities" className={`${isDark ? 'text-claude-orange' : 'text-claude-orange'} font-medium transition font-vastago px-3`}>
+              Opportunities
+            </Link>
+            <Link href="/dashboard" className={`${isDark ? 'text-[#d1cfbf]' : 'text-black'} hover:text-claude-orange transition font-vastago px-3`}>
+              Dashboard
+            </Link>
+            <UserButton afterSignOutUrl="/" />
+          </div>
         </div>
-      </header>
+      </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Research Opportunities</h1>
-          <p className="text-gray-600">
+          <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'} font-alice`}>Research Opportunities</h1>
+          <p className={`${isDark ? 'text-[#d1cfbf]/80' : 'text-gray-600'} font-vastago`}>
             Discover and apply to exciting research projects across various disciplines
           </p>
         </div>
@@ -341,48 +353,50 @@ export default function ResearchOpportunities() {
               placeholder="Search by name, research area, or department..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black h-[42px]"
+              className={`w-full px-4 py-2 border ${isDark ? 'border-gray-700 bg-[#2a2a2a] text-[#d1cfbf]' : 'border-gray-300 bg-white text-black'} rounded-lg focus:ring-2 focus:ring-claude-orange focus:border-transparent h-[42px]`}
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className={`h-5 w-5 ${isDark ? 'text-[#d1cfbf]/60' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
           </div>
-          <div className="relative">
-            <select
-              value={selectedDepartment}
-              onChange={(e) => handleDepartmentChange(e.target.value)}
-              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-900 cursor-pointer h-[42px]"
+          
+          {/* Filter Button */}
+          <button
+            onClick={() => setShowFilterModal(true)}
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 h-[42px] ${
+              isDark 
+                ? (selectedDepartment !== 'all' ? 'bg-claude-orange text-[#1a1a1a]' : 'bg-[#3a3a3a] text-[#d1cfbf]') 
+                : (selectedDepartment !== 'all' ? 'bg-claude-orange text-white' : 'bg-gray-200 text-gray-800')
+            }`}
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
             >
-              {[
-                { value: 'all', label: 'All Departments' },
-                { value: 'Computer Science', label: 'Computer Science' },
-                { value: 'Biology', label: 'Biology' },
-                { value: 'Chemistry', label: 'Chemistry' },
-                { value: 'Physics', label: 'Physics' },
-                { value: 'Mathematics', label: 'Mathematics' },
-              ].map((dept) => (
-                <option key={dept.value} value={dept.value}>{dept.label}</option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-              <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </div>
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Filters {selectedDepartment !== 'all' && '(1)'}
+          </button>
         </div>
 
         {(searchQuery || selectedDepartment !== 'all') && (
-          <p className="mt-2 text-sm text-black">
+          <p className={`mt-2 mb-6 text-sm ${isDark ? 'text-[#d1cfbf]/80' : 'text-gray-700'} font-vastago`}>
             Showing {filteredProfessors.length} unique results
           </p>
         )}
 
         {isDataLoading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${isDark ? 'border-claude-orange' : 'border-blue-600'}`}></div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -391,6 +405,7 @@ export default function ResearchOpportunities() {
                 key={professor.profile_link}
                 professor={professor}
                 onClick={() => openModal(professor)}
+                isDark={isDark}
               />
             ))}
           </div>
@@ -406,7 +421,136 @@ export default function ResearchOpportunities() {
         isApplying={isApplying}
         hasApplied={hasApplied}
         backupMailtoLink={backupMailtoLink}
+        isDark={isDark}
       />
+
+      {/* Filter Modal */}
+      {showFilterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            className={`${isDark ? 'bg-[#2a2a2a] text-[#d1cfbf]' : 'bg-white text-gray-800'} rounded-lg shadow-xl p-6 w-full max-w-md`}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className={`text-xl font-semibold ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'} font-alice`}>
+                Filter Options
+              </h3>
+              <button 
+                onClick={() => setShowFilterModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Department Filter */}
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? 'text-[#d1cfbf]/90' : 'text-gray-700'} mb-1`}>
+                  Department
+                </label>
+                <select
+                  value={selectedDepartment}
+                  onChange={(e) => handleDepartmentChange(e.target.value)}
+                  className={`w-full p-2 rounded-md border ${
+                    isDark ? 'bg-[#333] border-gray-700 text-[#d1cfbf]' : 'bg-white border-gray-300 text-gray-900'
+                  } focus:ring-2 focus:ring-claude-orange focus:border-transparent`}
+                >
+                  <option value="all">All Departments</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Biology">Biology</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Physics">Physics</option>
+                  <option value="Mathematics">Mathematics</option>
+                </select>
+              </div>
+
+              {/* Subject/Research Area Tags (for future implementation) */}
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? 'text-[#d1cfbf]/90' : 'text-gray-700'} mb-1`}>
+                  Research Areas
+                </label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {[
+                    'Machine Learning', 
+                    'AI', 
+                    'Data Science', 
+                    'Bioinformatics',
+                    'Quantum Computing'
+                  ].map(area => (
+                    <button 
+                      key={area}
+                      // onClick to be implemented for multiple filter selection
+                      className={`px-3 py-1 text-sm rounded-full border ${
+                        isDark 
+                          ? 'border-gray-700 bg-[#333] text-[#d1cfbf] hover:bg-[#444]' 
+                          : 'border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200'
+                      }`}
+                    >
+                      {area}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Looking For (Student Level) */}
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? 'text-[#d1cfbf]/90' : 'text-gray-700'} mb-1`}>
+                  Looking For
+                </label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {[
+                    'Undergrad', 
+                    'Masters', 
+                    'PhD',
+                    'Post-doc'
+                  ].map(level => (
+                    <button 
+                      key={level}
+                      // onClick to be implemented for multiple filter selection
+                      className={`px-3 py-1 text-sm rounded-full border ${
+                        isDark 
+                          ? 'border-gray-700 bg-[#333] text-[#d1cfbf] hover:bg-[#444]' 
+                          : 'border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200'
+                      }`}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    handleDepartmentChange('all');
+                    setShowFilterModal(false);
+                  }}
+                  className={`px-4 py-2 rounded-md ${
+                    isDark 
+                      ? 'bg-[#3a3a3a] text-[#d1cfbf] hover:bg-[#444]' 
+                      : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                  }`}
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={() => setShowFilterModal(false)}
+                  className={`px-4 py-2 rounded-md ${
+                    isDark 
+                      ? 'bg-claude-orange text-[#1a1a1a]' 
+                      : 'bg-claude-orange text-white'
+                  } hover:opacity-90`}
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
