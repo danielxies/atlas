@@ -135,7 +135,7 @@ export default function LandingPage() {
           {/* CTA Button */}
           <div className="flex justify-center mb-12">
             <DxButton 
-              destination="/signup"
+              destination={isSignedIn ? "/dashboard" : "/signup"}
               bgColor={isDark ? 'bg-[#d1cfbf]' : 'bg-claude-orange'}
               textColor={isDark ? 'text-[#1a1a1a]' : 'text-white'}
               hoverColor={isDark ? 'hover:bg-[#c1bfaf]' : 'hover:bg-claude-orange/90'}
@@ -223,7 +223,7 @@ export default function LandingPage() {
               <span className={`relative inline-block ${isDark ? 'text-claude-orange/90' : 'text-claude-orange'}`}>
                 every step 
                 <div className={`absolute -bottom-1 left-0 w-full h-0.5 ${isDark ? 'bg-claude-orange/90' : 'bg-claude-orange'}`}></div>
-              </span> of your (rea)search.
+              </span> of your (re)search.
             </h2>
             
             <p className={`text-xl ${isDark ? 'text-[#d1cfbf]' : 'text-gray-700'} mb-12 max-w-3xl mx-auto font-vastago`}>
@@ -332,7 +332,7 @@ export default function LandingPage() {
             {/* Only show Create Free Account if not signed in */}
             {!isSignedIn && (
               <DxButton 
-                destination="/signup"
+                destination={isSignedIn ? "/dashboard" : "/signup"}
                 bgColor={isDark ? 'bg-[#d1cfbf]' : 'bg-white'}
                 textColor={isDark ? 'text-[#1a1a1a]' : 'text-claude-orange'}
                 hoverColor={isDark ? 'hover:bg-[#c1bfaf]' : 'hover:bg-gray-100'}
