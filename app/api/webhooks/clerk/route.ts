@@ -10,15 +10,33 @@ export async function POST(req: Request) {
 
   try {
     const event = wh.verify(payload, rawHeaders) as {
-      data: { id: string; email_addresses: { email_address: string }[] };
+      data: { 
+        id: string; 
+        email_addresses: { email_address: string }[];
+        unsafeMetadata?: {
+          university?: string;
+          major?: string;
+          portfolio?: string;
+          github?: string;
+        };
+      };
       type: string;
     };
 
     if (event.type === 'user.created') {
-      await supabase.from('user_profiles').upsert({
+      // Create a basic profile with just the essential information
+      // The profile-completion page will add additional fields
+      await supabase.from('profiles').upsert({
         clerk_id: event.data.id,
         email: event.data.email_addresses[0].email_address,
         created_at: new Date(),
+        // Also include any unsafeMetadata if it exists
+        ...(event.data.unsafeMetadata ? {
+          university: event.data.unsafeMetadata.university,
+          major: event.data.unsafeMetadata.major,
+          portfolio: event.data.unsafeMetadata.portfolio,
+          github: event.data.unsafeMetadata.github,
+        } : {})
       });
     }
 

@@ -13,6 +13,7 @@ import OpportunityModal, { ResearchOpportunity } from '@/components/custom/Oppor
 import OpportunityCard from '@/components/custom/OpportunityCard';
 import ProfessorCard, { Professor } from '@/components/custom/ProfessorCard';
 import ProfessorModal from '@/components/custom/ProfessorModal';
+import Navbar from '../components/shared/Navbar';
 
 function calculateSimilarity(searchText: string, professor: Professor): number {
   const searchLower = searchText.toLowerCase().trim();
@@ -82,6 +83,31 @@ export default function ResearchOpportunities() {
       router.push('/login');
     }
   }, [isLoaded, isSignedIn, router]);
+
+  // New effect to check if profile is complete and redirect if not
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !user) return;
+
+    const checkProfileCompletion = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('university, major')
+        .eq('clerk_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error checking profile completion:', error);
+        return;
+      }
+
+      // If university or major is missing, redirect to profile completion
+      if (!data || !data.university || !data.major) {
+        router.push('/profile-completion');
+      }
+    };
+
+    checkProfileCompletion();
+  }, [isLoaded, isSignedIn, user, router]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -302,39 +328,7 @@ export default function ResearchOpportunities() {
   return (
     <div className={`min-h-screen ${isDark ? 'bg-[#1a1a1a] text-[#d1cfbf]' : 'bg-[#e8e6d9] text-black'} ${alice.variable} ${vastago.variable} flex flex-col`}>
       {/* Header */}
-      <nav className={`w-full px-6 py-4 z-50 ${isDark ? 'bg-[#1a1a1a]' : 'bg-[#e8e6d9]'} shadow-sm`}>
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <Image 
-              src="/icon.png" 
-              alt="Atlas Logo" 
-              width={32} 
-              height={32}
-              onClick={() => router.push('/')} 
-              className="cursor-pointer"
-            />
-            <span className={`font-vastago ${isDark ? 'text-[#d1cfbf]' : 'text-black'} text-xl font-semibold`}>Atlas</span>
-          </div>
-
-          {/* Right Side - Theme Toggle and links */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsDark(!isDark)}
-              className={`p-2 rounded-lg ${isDark ? 'text-[#d1cfbf] hover:bg-white/10' : 'text-black hover:bg-black/10'} transition-colors`}
-            >
-              {isDark ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            <Link href="/opportunities" className={`${isDark ? 'text-claude-orange' : 'text-claude-orange'} font-medium transition font-vastago px-3`}>
-              Opportunities
-            </Link>
-            <Link href="/dashboard" className={`${isDark ? 'text-[#d1cfbf]' : 'text-black'} hover:text-claude-orange transition font-vastago px-3`}>
-              Dashboard
-            </Link>
-            <UserButton afterSignOutUrl="/" />
-          </div>
-        </div>
-      </nav>
+      <Navbar isDark={isDark} setIsDark={setIsDark} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">

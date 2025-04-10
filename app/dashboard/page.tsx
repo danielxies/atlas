@@ -15,6 +15,7 @@ import ProfileCard from '../components/dashboard/ProfileCard';
 import EditProfileForm from '../components/dashboard/EditProfileForm';
 import ModalComponent from '../components/dashboard/ModalComponent';
 import Footer from '../components/shared/Footer';
+import Navbar from '../components/shared/Navbar';
 
 export default function DashboardPage() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -27,6 +28,31 @@ export default function DashboardPage() {
       router.push('/login');
     }
   }, [isLoaded, isSignedIn, router]);
+
+  // New effect to check if profile is complete and redirect if not
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !user) return;
+
+    const checkProfileCompletion = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('university, major')
+        .eq('clerk_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error checking profile completion:', error);
+        return;
+      }
+
+      // If university or major is missing, redirect to profile completion
+      if (!data || !data.university || !data.major) {
+        router.push('/profile-completion');
+      }
+    };
+
+    checkProfileCompletion();
+  }, [isLoaded, isSignedIn, user, router]);
 
   // Profile state variables
   const [resumeUrl, setResumeUrl] = useState<string>('');
@@ -222,7 +248,7 @@ export default function DashboardPage() {
   return (
     <div className={`min-h-screen ${isDark ? 'bg-[#1a1a1a] text-[#d1cfbf]' : 'bg-[#e8e6d9] text-black'} ${alice.variable} ${vastago.variable} flex flex-col`}>
       {/* Header */}
-      <ProfileHeader isDark={isDark} setIsDark={setIsDark} router={router} />
+      <Navbar isDark={isDark} setIsDark={setIsDark} />
 
       {/* Main content */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">

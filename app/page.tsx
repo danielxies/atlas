@@ -9,6 +9,8 @@ import { useTheme } from './lib/hooks/useTheme';
 import { alice, vastago } from './fonts';
 import { Sun, Moon, Star, ChevronDown, ChevronUp, Plus, Minus } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import LogoTicker from './components/shared/LogoTicker';
+import { sampleLogos } from './components/shared/SampleLogos';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -19,17 +21,6 @@ export default function LandingPage() {
   const goHome = () => {
     router.push('/');
   };
-
-  // Partner logos array - college logos
-  const collegeLogos = [
-    { name: 'Microsoft', src: '/logos/microsoft.svg' },
-    { name: 'Amazon', src: '/logos/amazon.svg' },
-    { name: 'Apple', src: '/logos/apple.svg' },
-    { name: 'Netflix', src: '/logos/netflix.svg' },
-    { name: 'Facebook', src: '/logos/facebook.svg' },
-    { name: 'Twitter', src: '/logos/twitter.svg' },
-    { name: 'Spotify', src: '/logos/spotify.svg' },
-  ];
 
   // FAQ items
   const faqItems = [
@@ -170,20 +161,21 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-        
-        <div className="max-w-6xl mx-auto mb-16 px-6">
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
-            {collegeLogos.map((logo, index) => (
-              <div key={index} className="flex items-center justify-center">
-                <Image 
-                  src={logo.src} 
-                  alt={`${logo.name} logo`} 
-                  width={120} 
-                  height={40} 
-                  className={`h-8 w-auto object-contain ${isDark ? 'opacity-70 hover:opacity-100' : 'opacity-80 hover:opacity-100'} transition-opacity`}
-                />
-              </div>
-            ))}
+        {/* Logo Ticker Section - Replacing the static logos */}
+        <div className="max-w-6xl mx-auto mb-24 flex flex-col items-center">
+          <div className={`mb-6 px-4 ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'}`}>
+            <h2 className={`text-3xl font-bold font-alice text-center uppercase tracking-wider`}>
+              Featured In
+            </h2>
+          </div>
+          <div className="relative overflow-hidden">
+            <div className={`absolute inset-0 ${isDark ? 'bg-gradient-to-b from-[#1a1a1a]/20 via-transparent to-[#1a1a1a]/20' : 'bg-gradient-to-b from-[#e8e6d9]/20 via-transparent to-[#e8e6d9]/20'} backdrop-blur-[1px] z-0`}></div>
+            <LogoTicker 
+              logos={sampleLogos}
+              speed={25}
+              direction="rtl"
+              isDark={isDark}
+            />
           </div>
         </div>
 
