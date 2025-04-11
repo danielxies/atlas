@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent flash of unstyled content */
+:root {
+  --initial-bg-color: #e8e6d9;
+  --initial-text-color: #1a1a1a;
+}
+
+html, body {
+  background-color: var(--initial-bg-color);
+  color: var(--initial-text-color);
+}
+
+/* Ensure the loading element uses the initial background color */
+.initial-loading {
+  background-color: var(--initial-bg-color);
+  color: var(--initial-text-color);
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -94,6 +111,15 @@
 
 .red-glow {
   animation: redGlow 3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease-in-out forwards;
 }
 
 ::-webkit-scrollbar {
