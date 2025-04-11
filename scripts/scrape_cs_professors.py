@@ -281,7 +281,7 @@ def extract_details_from_page(soup):
         research_desc = re.sub(r'(Publications|Past Papers|Research Description):', '', parent.get_text(separator=" ", strip=True), flags=re.IGNORECASE)
     if not research_desc:
         paragraphs = soup.find_all("p")
-        candidate_texts = [clean_text(p.get_text(separator=" ", strip=True)) for p in paragraphs if "research" in p.get_text().lower()]
+        candidate_texts = [clean_text(p.get_text(separator=" ", strip=True)) for p in paragraphs if ("research" in p.get_text().lower() or "interest" in p.get_text().lower() or "publication" in p.get_text().lower())]
         if candidate_texts:
             research_desc = " ".join(candidate_texts[:3])
     details["research_description"] = clean_text(research_desc)
