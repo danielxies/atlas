@@ -11,6 +11,7 @@ import { Sun, Moon, Star, ChevronDown, ChevronUp, Plus, Minus } from 'lucide-rea
 import { useState, useEffect } from 'react';
 import LogoTicker from './components/shared/LogoTicker';
 import { sampleLogos } from './components/shared/SampleLogos';
+import BrowserVideoDemo from './components/shared/BrowserVideoDemo';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -124,7 +125,7 @@ export default function LandingPage() {
           </p>
           
           {/* CTA Button */}
-          <div className="flex justify-center mb-12">
+          <div className="flex justify-center mb-24">
             <DxButton 
               destination={isSignedIn ? "/dashboard" : "/signup"}
               bgColor={isDark ? 'bg-[#d1cfbf]' : 'bg-claude-orange'}
@@ -138,28 +139,13 @@ export default function LandingPage() {
             </DxButton>
           </div>
           
-          {/* Browser/Demo Section - Moved here */}
-          <div className="max-w-5xl mx-auto px-6 mb-[5rem]">
-            <div className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-white'} p-4 rounded-lg shadow-xl overflow-hidden`}>
-              <div className="w-full bg-gray-200 h-8 rounded-t-lg flex items-center px-2 gap-1">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <div className="flex-1 flex justify-center">
-                  <div className="w-1/2 h-5 bg-gray-300 rounded-full"></div>
-                </div>
-              </div>
-              <div className={`w-full ${isDark ? 'bg-[#1a1a1a]' : 'bg-gray-100'} h-96 rounded-b-lg flex items-center justify-center`}>
-                <Image 
-                  src="/scenic.jpg" 
-                  alt="Research platform demonstration" 
-                  width={800} 
-                  height={500}
-                  className="rounded-lg object-cover max-h-80 w-auto"
-                />
-              </div>
-            </div>
-          </div>
+          {/* Video Demo Section - Using the updated component */}
+          <BrowserVideoDemo 
+            videoSrc="/videos/landing.mp4" 
+            isDark={isDark}
+            className="mb-[5rem]"
+            posterSrc="/scenic.jpg"
+          />
         </div>
         {/* Logo Ticker Section - Replacing the static logos */}
         <div className="max-w-6xl mx-auto mb-24 flex flex-col items-center">
@@ -197,7 +183,7 @@ export default function LandingPage() {
           </div>
 
           {/* Job Matches Section */}
-          <div className="grid md:grid-cols-2 gap-16 items-center mb-32">
+          <div className="grid md:grid-cols-2 gap-16 items-center mb-32 mt-[10rem]">
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark ? 'bg-white' : 'bg-claude-orange/10'}`}>
