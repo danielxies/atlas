@@ -33,14 +33,14 @@ const Navbar: React.FC<NavbarProps> = ({ isDark, setIsDark }) => {
         {/* Right Side - Links, Theme Toggle and UserButton */}
         <div className="flex items-center gap-3">
           <Link 
-            href="/search" 
+            href="/dashboard" 
             className={`${
-              pathname === '/search' 
+              pathname === '/dashboard' 
                 ? `${isDark ? 'text-claude-orange' : 'text-claude-orange'} font-medium` 
                 : `${isDark ? 'text-[#d1cfbf]' : 'text-black'} hover:text-claude-orange`
             } transition font-vastago px-3`}
           >
-            Search
+            Dashboard
           </Link>
           <Link 
             href="/opportunities" 
@@ -53,14 +53,14 @@ const Navbar: React.FC<NavbarProps> = ({ isDark, setIsDark }) => {
             Opportunities
           </Link>
           <Link 
-            href="/dashboard" 
+            href="/profile" 
             className={`${
-              pathname === '/dashboard' 
+              pathname === '/profile' 
                 ? `${isDark ? 'text-claude-orange' : 'text-claude-orange'} font-medium` 
                 : `${isDark ? 'text-[#d1cfbf]' : 'text-black'} hover:text-claude-orange`
             } transition font-vastago px-3`}
           >
-            Dashboard
+            Profile
           </Link>
           <button
             onClick={() => setIsDark(!isDark)}
