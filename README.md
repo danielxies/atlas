@@ -1,61 +1,130 @@
+<h1 align="center">
+  <br>
+  <a href="#"><img src="/public/icon.png" alt="Atlas" width="200"></a>
+  <br>
+  Atlas
+  <br>
+</h1>
 
-# 🌟 Next.js Starter Template
+<h4 align="center">A powerful platform that connects students with meaningful research opportunities.</h4>
 
-Welcome to the **Next.js Starter Template**, a modern and lightweight starting point for your next project. This template comes preloaded with essential tools and features to kickstart your development journey with minimal configuration.
+<p align="center">
+  <a href="#">
+    <img src="https://img.shields.io/badge/Next.js-14-black?style=flat-square" alt="Next.js">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Clerk-Auth-purple?style=flat-square" alt="Clerk">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Supabase-Database-green?style=flat-square" alt="Supabase">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Tailwind-CSS-blue?style=flat-square" alt="Tailwind CSS">
+  </a>
+</p>
 
----
+<p align="center">
+  <a href="#key-features">Key Features</a> •
+  <a href="#how-it-works">How It Works</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#environment-variables">Environment Variables</a> •
+  <a href="#deployment">Deployment</a> •
+  <a href="#roadmap">Roadmap</a>
+</p>
 
-## 🚀 Features
+![screenshot](/public/scenic.jpg)
 
-- 🦋 **[shadcn/ui](https://github.com/shadcn/ui)** for a powerful, accessible component library.
-- 🛠️ **Basic Components** to help you start building quickly.
-- 📄 **Landing Page** for an instant online presence.
-- ❌ **Custom 404 Page** for better user experience.
-- 🎨 **Custom Fonts** to enhance your design aesthetics.
-- 🌀 **[Tailwind CSS](https://tailwindcss.com/)** for utility-first styling.
-- 🎥 **[Framer Motion](https://www.framer.com/motion/)** for smooth animations.
+## Key Features
 
----
+* **One-Profile Application System** - Create a profile once and apply to multiple research opportunities with just a few clicks
+* **Personalized Recommendations** - Get matched with research opportunities based on your skills, interests, and experience
+* **Simple Application Tracking** - Keep track of all your applications in one place with status updates
+* **Last-Minute Opportunities** - Discover time-sensitive research openings that match your profile
+* **Institutional Partnerships** - Exclusive research opportunities from partner universities and research institutions
+* **Dark/Light Mode** - Customizable interface to suit your preference
+* **Responsive Design** - Works seamlessly on desktop, tablet, and mobile devices
+* **Secure Authentication** - Powered by Clerk for secure and easy sign-in options
 
-## 🛠️ Installation and Setup
+## How It Works
 
-Follow these steps to set up the project locally:
+Atlas simplifies the research application process for students:
 
-1. **Clone the repository**
-   ```bash
-   git clone <your-repository-url>
-   cd <repository-folder-name>
-   ```
+1. **Create Your Profile** - Build a comprehensive profile with your academic background, skills, and research interests
+2. **Discover Opportunities** - Browse personalized research recommendations tailored to your profile
+3. **Apply Easily** - Submit applications with one click using your pre-filled profile information
+4. **Track Progress** - Monitor application status and get updates on your research applications
+5. **Connect** - Communicate directly with research programs and professors through the platform
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+Atlas is built using modern technologies for the best performance and user experience:
 
-4. Open your browser and navigate to [http://localhost:3000](http://localhost:3000) to see your app in action! 🚀
+* **Frontend**: Next.js 14, React, Tailwind CSS, Framer Motion
+* **Authentication**: Clerk
+* **Database**: Supabase
+* **Styling**: Tailwind CSS, shadcn/ui components
+* **State Management**: React Hooks
+* **Deployment**: Vercel
 
----
+## Getting Started
 
-## 📂 Project Structure
+To run Atlas locally, follow these steps:
 
-```plaintext
-.
-├── components/       # Reusable UI components
-├── app/            # Next.js pages (includes landing and 404 pages)
-├── public/           # Public assets
-├── styles/           # Tailwind CSS and custom styles
-├── utils/            # Utility functions (if any)
-└── package.json      # Project metadata and dependencies
+```bash
+# Clone this repository
+git clone https://github.com/yourusername/atlas.git
+
+# Navigate to the project directory
+cd atlas
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+# Create a .env.local file with required variables (see Environment Variables section)
+
+# Start the development server
+npm run dev
 ```
 
-## 📝 License
+Then open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
-This project is licensed under the [MIT License](LICENSE).  
-Feel free to use, modify, and distribute it as per the terms of the license.
+## Environment Variables
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL=/profile-completion
+OPENAI_API_KEY=your_openai_api_key
+```
+
+## Deployment
+
+Atlas can be easily deployed to Vercel:
+
+1. Fork or clone this repository
+2. Set up the environment variables in your Vercel project
+3. Connect your GitHub repository to Vercel
+4. Deploy!
+
+## Roadmap
+
+Future features planned for Atlas:
+
+- [ ] Advanced filtering options for research opportunities
+- [ ] AI-powered application improvement suggestions
+- [ ] Mentorship matching with researchers
+- [ ] Research paper recommendation system
+- [ ] Conference and event discovery
+- [ ] Mobile app for on-the-go application tracking
 
 ---
+
+> [atlas.research.app](https://atlas.research.app) &nbsp;&middot;&nbsp;
+> GitHub [@atlasresearch](https://github.com/atlasresearch) &nbsp;&middot;&nbsp;
+> Twitter [@atlasresearch](https://twitter.com/atlasresearch)
