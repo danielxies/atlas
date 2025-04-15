@@ -23,7 +23,7 @@ if not client.api_key:
 def test_openai_api():
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # using "4o-mini" as requested
+            model="gpt-4.1-nano",  # using "4o-mini" as requested
             messages=[{
                 "role": "system", "content": "You are a helpful assistant.",
                 "role": "user", "content": "Say hello"
@@ -150,7 +150,7 @@ def cached_summarize(text: str, max_length: int = 250, min_length: int = 150) ->
         return text
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # using "4o-mini" as requested; ensure this model is available
+            model="gpt-4.1-nano",  # using "4o-mini" as requested; ensure this model is available
             messages=[{
                 "role": "system", "content": "You are a helpful assistant that creates concise, 3-5 sentence summaries of academic text.",
                 "role": "user", "content": f"Please provide a concise summary in 3-5 sentences for the following text:\n\n{text}"

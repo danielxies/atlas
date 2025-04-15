@@ -30,6 +30,7 @@ export default function SearchPage() {
     // Here you would typically call an API to fetch search results
   };
 
+
   return (
     <div className={`min-h-screen ${isDark ? 'bg-[#1a1a1a] text-[#d1cfbf]' : 'bg-[#e8e6d9] text-black'} ${alice.variable} ${vastago.variable} flex flex-col`}>
       <Navbar isDark={isDark} setIsDark={setIsDark} />
@@ -39,7 +40,6 @@ export default function SearchPage() {
           <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-center ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'} font-alice`}>
             What are <span className="text-claude-orange italic underline">you</span> interested in?
           </h1>
-          
           <div className="mb-10">
             <style jsx global>{`
               .search-input-container {

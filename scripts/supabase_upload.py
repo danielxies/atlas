@@ -66,6 +66,16 @@ def upload_to_supabase(df: pd.DataFrame):
 
     supabase: Client = create_client(supabase_url, supabase_key)
 
+    # Clear the current professors database.
+    print("Clearing the current professors database...")
+    # We use a filter that always evaluates to True (assuming id > 0 for all records)
+    reset_response = supabase.rpc("reset_professors_table").execute()
+    # Check based on returned data
+    if reset_response.data is None:
+        print("❌ Error resetting professors table.")
+    else:
+        print("Professors table cleared and IDs reset.")
+
     list_fields = ["classes_teaching", "research_areas", "preferred_majors"]
 
     for index, row in df.iterrows():

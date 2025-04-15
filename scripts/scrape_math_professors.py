@@ -49,7 +49,7 @@ def cached_summarize(text: str) -> str:
         return text
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1-nano",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that creates concise, 3-5 sentence summaries of academic text."},
                 {"role": "user", "content": f"Your output will be featured on a website. You should talk about the professor in the third person and the summary should be describing the professor based on their research description provided. This is an example of a good description: Kiril Datchev is an Associate Professor in the Department of Mathematics at Purdue University, where he teaches courses in Linear Algebra and Functional Analysis. His research focuses on various aspects of mathematical physics, particularly in spectral theory and wave equations, with numerous publications co-authored with colleagues on topics such as low energy resolvent asymptotics, eigenvalue behavior, and semiclassical resonances. Datchev has supervised PhD students and has been involved in organizing academic conferences and programs related to microlocal analysis. His extensive publication record includes articles in prestigious journals, contributing significantly to the fields of analysis and partial differential equations. Summarize the following academic research text in 3-5 sentences. \n\n{text}"}
@@ -93,7 +93,7 @@ Only respond with one exact area from the list above.
 """
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1-nano",
             messages=[
                 {"role": "system", "content": "You are a research area classification assistant given a professor's research description."},
                 {"role": "user", "content": prompt}
