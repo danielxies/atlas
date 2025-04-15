@@ -28,7 +28,7 @@ tqdm==4.67.1
 typing-extensions==4.13.0
 tzdata==2025.2
 urllib3==2.2.3
-pdfjs-dist@^3.4.120
+pdfjs-dist
 canvas
 
 #@supabase/supabase-js

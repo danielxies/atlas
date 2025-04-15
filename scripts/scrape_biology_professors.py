@@ -157,7 +157,7 @@ def extract_details_from_page(soup):
     
     # Research Description
     paragraphs = soup.find_all("p")
-    research_paras = [p.get_text(separator=" ") for p in paragraphs if "research" in p.get_text().lower()]
+    research_paras = [p.get_text(separator=" ") for p in paragraphs if ("research" in p.get_text().lower() or "interest" in p.get_text().lower() or "publication" in p.get_text().lower())]
     if research_paras:
         combined = " ".join(research_paras)
     else:
