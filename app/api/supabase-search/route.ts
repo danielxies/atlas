@@ -11,7 +11,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 /*
@@ -22,7 +21,6 @@ curl -X POST http://localhost:3000/api/supabase-search \
   -d '{"query": "query here"}' \
   | jq -r '.output'
 */
-
 
 /*
 Assumption: In Supabase you have created a stored function called `match_professors` that accepts:
@@ -56,7 +54,6 @@ export async function POST(request: Request) {
     });
     const queryEmbedding = embeddingResponse.data[0].embedding;
 
-
     // Step 2: Use Supabase RPC to find the top 5 matching professors.
     const { data, error: rpcError } = await supabase.rpc("match_professors", { 
       vector_query: queryEmbedding,
@@ -66,11 +63,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: rpcError.message }, { status: 500 });
     }
 
-    // Remove the embedding from each professor's record for cleaner output.
+    // Remove the embedding (and distance) from each professor's record for cleaner output.
     const matchedProfessors = (data as any[]).map((prof) => {
-        const { embedding, distance, ...cleaned } = prof;
-        return cleaned;
-        });
+      const { embedding, distance, ...cleaned } = prof;
+      return cleaned;
+    });
 
     // Step 3: Build context text from the matched professors.
     let professorInfoText = "";
@@ -98,22 +95,38 @@ Using the above information, generate a conversational recommendation that sugge
 
     // Step 5: Get the final output from GPT-4.1-mini.
     const completionResponse = await openai.chat.completions.create({
-        model: 'gpt-4.1-mini',
-        messages: [
-            { role: "system", content: "You are an assistant that gives friendly, conversational recommendations based on research professor data." },
-            { role: "user", content: prompt }
-        ],
-        max_tokens: 1200,
-        temperature: 0.2,
-        top_p: 0.9,
-        presence_penalty: 0.1,
-        frequency_penalty: 0.1,
-      });
-  
-      const gptOutput = completionResponse.choices[0].message.content;
+      model: 'gpt-4.1-mini',
+      messages: [
+        { role: "system", content: "You are an assistant that gives friendly, conversational recommendations based on research professor data." },
+        { role: "user", content: prompt }
+      ],
+      max_tokens: 1200,
+      temperature: 0.2,
+      top_p: 0.9,
+      presence_penalty: 0.1,
+      frequency_penalty: 0.1,
+    });
 
-    // Step 6: Return the output (and optionally the matched professor data) as JSON.
-    return NextResponse.json({ output: gptOutput, matchedProfessors });
+    const gptOutput = completionResponse.choices[0].message.content;
+
+    // Step 5.1: Create a markdown table with basic professor information.
+    const markdownTable = `
+| Name | Department | Research Areas | Preferred Majors | Profile Link |
+| --- | --- | --- | --- | --- |
+${matchedProfessors.map(prof => 
+  `| ${prof.name || ""} | ${prof.department || ""} | ${
+    Array.isArray(prof.research_areas) ? prof.research_areas.join(", ") : (prof.research_areas || "")
+  } | ${
+    Array.isArray(prof.preferred_majors) ? prof.preferred_majors.join(", ") : (prof.preferred_majors || "")
+  } | ${prof.profile_link || ""} |`
+).join("\n")}
+`;
+
+    // Step 5.2: Append the markdown table to the GPT output.
+    const finalOutput = gptOutput + "\n\n" + "### Professor Information\n" + markdownTable;
+
+    // Step 6: Return the output (with markdown table) and a JSON of just the professor information.
+    return NextResponse.json({ output: finalOutput, professors: matchedProfessors });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ error: err.message }, { status: 500 });
