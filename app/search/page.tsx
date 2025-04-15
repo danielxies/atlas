@@ -40,7 +40,6 @@ export default function SearchPage() {
           <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-center ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'} font-alice`}>
             What are <span className="text-claude-orange italic underline">you</span> interested in?
           </h1>
-          <button id="testApiButton">Test API</button>
           <div className="mb-10">
             <style jsx global>{`
               .search-input-container {
