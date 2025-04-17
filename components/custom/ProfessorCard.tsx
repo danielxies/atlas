@@ -53,12 +53,14 @@ export default function ProfessorCard({ professor, onClick, isDark = false }: Pr
           </p>
         </div>
         <div className="flex items-center justify-between mt-4">
+          {/*
           {professor.currently_looking_for && (
             <span className={`text-sm ${isDark ? 'text-[#d1cfbf]/60' : 'text-gray-500'}`}>
               <h4 className={`text-sm font-medium ${isDark ? 'text-[#d1cfbf]/60' : 'text-gray-500'} mb-1 font-vastago`}>Looking for Researchers</h4>
               <p className="font-vastago">{professor.currently_looking_for || 'No description available'}</p>
             </span>
           )}
+          */}
           <button 
             onClick={onClick} 
             className={`${isDark ? 'text-claude-orange hover:text-claude-orange/80' : 'text-claude-orange hover:text-claude-orange/80'} font-medium transition flex items-center gap-1 font-vastago`}

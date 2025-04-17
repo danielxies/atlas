@@ -12,7 +12,7 @@ import { alice, vastago } from '../fonts';
 import OpportunityModal, { ResearchOpportunity } from '@/components/custom/OpportunityModal';
 import OpportunityCard from '@/components/custom/OpportunityCard';
 import ProfessorCard, { Professor } from '@/components/custom/ProfessorCard';
-import ProfessorModal from '@/components/custom/ProfessorModal';
+import TabbedApplyModal from '@/components/custom/TabbedApplyModal';
 import Navbar from '../components/shared/Navbar';
 
 function calculateSimilarity(searchText: string, professor: Professor): number {
@@ -76,6 +76,9 @@ export default function ResearchOpportunities() {
   const [hasApplied, setHasApplied] = useState(false);
   // New state for backup mailto link
   const [backupMailtoLink, setBackupMailtoLink] = useState('');
+  // New state for email editor
+  const [draftEmail, setDraftEmail] = useState('');
+  const [showApplyModal, setShowApplyModal] = useState(false);
 
   // Redirect if not signed in
   useEffect(() => {
@@ -214,52 +217,66 @@ export default function ResearchOpportunities() {
   };
   const closeModal = () => {
     setIsModalOpen(false);
+    setShowApplyModal(false);
     setSelectedProfessor(null);
   };
 
   const handleComposeEmail = async (professor: Professor) => {
     if (!user) return;
     setIsApplying(true);
-    
-    // Create a minimal professor object for email generation
-    const nameParts = professor.name.split(' ');
-    const firstName = nameParts[0];
-    const lastName = nameParts[nameParts.length - 1];
-    const professorEntry = `${firstName}|${lastName}|${professor.email}`;
-
-    // Update the applied_professors column in the user's profile
-    const { data: profileData, error: fetchError } = await supabase
-      .from('profiles')
-      .select('applied_professors')
-      .eq('clerk_id', user.id)
-      .single();
-    if (fetchError) {
-      console.error('Error fetching applied_professors:', fetchError);
-    } else {
-      let appliedList = profileData.applied_professors || [];
-      // If not an array, convert a comma-separated string to array
-      if (!Array.isArray(appliedList)) {
-        appliedList = appliedList.split(',').map((s: string) => s.trim()).filter((s: string) => s);
-      }
-      // Avoid duplicate entries
-      if (!appliedList.includes(professorEntry)) {
-        appliedList.push(professorEntry);
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ applied_professors: appliedList })
-          .eq('clerk_id', user.id);
-        if (updateError) {
-          console.error('Error updating applied_professors:', updateError);
+  
+    // -------------------------
+    // 1. Update applied_professors in Supabase
+    // -------------------------
+    try {
+      const { data: profileData, error: fetchError } = await supabase
+        .from('profiles')
+        .select('applied_professors')
+        .eq('clerk_id', user.id)
+        .single();
+  
+      if (fetchError) {
+        console.error('Error fetching applied_professors:', fetchError);
+      } else {
+        let appliedList = profileData.applied_professors || [];
+  
+        // Normalize to array
+        if (!Array.isArray(appliedList)) {
+          appliedList = appliedList
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter((s: string) => s);
+        }
+  
+        const nameParts = professor.name.split(' ');
+        const professorEntry = `${nameParts[0]}|${nameParts[nameParts.length - 1]}|${professor.email}`;
+  
+        // Only add if not already applied
+        if (!appliedList.includes(professorEntry)) {
+          appliedList.push(professorEntry);
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ applied_professors: appliedList })
+            .eq('clerk_id', user.id);
+          if (updateError) {
+            console.error('Error updating applied_professors:', updateError);
+          }
         }
       }
+    } catch (err) {
+      console.error('Unexpected error updating applied_professors:', err);
     }
-
-    // Gather user details including new fields for university and major
+  
+    // -------------------------
+    // 2. Gather user + professor details and call LLM
+    // -------------------------
+    const nameParts = professor.name.split(' ');
     const professorForEmail = {
-      lastName: lastName,
+      lastName: nameParts[nameParts.length - 1],
       researchArea: professor.research_areas[0] || "the subject area",
       researchDescription: professor.research_description || "the research description"
     };
+  
     const userDetails = {
       name: user.fullName || "Your Name",
       researchInterests: researchInterests,
@@ -272,9 +289,8 @@ export default function ResearchOpportunities() {
       university: university,
       major: major,
     };
-
+  
     try {
-      console.log(userDetails);
       const res = await fetch('/api/generate-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -283,39 +299,59 @@ export default function ResearchOpportunities() {
           user: userDetails,
         }),
       });
+  
       const data = await res.json();
+  
       if (!res.ok) {
         alert('Failed to generate email: ' + data.error);
-        setIsApplying(false);
         return;
       }
-      const emailOutput = data.email;
-      console.log("Generated Email:", emailOutput);
-      const lines = emailOutput.split('\n');
-      let subject = '';
-      let body = '';
-      let subjectFound = false;
-      for (const line of lines) {
-        if (line.startsWith('Subject:')) {
-          subject = line.replace('Subject:', '').trim();
-          subjectFound = true;
-        } else if (subjectFound) {
-          body += line + '\n';
-        }
-      }
-      const mailtoLink = `mailto:${professor.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      // Set the backup link
-      setBackupMailtoLink(mailtoLink);
-      // Open the mailto link as usual
-      window.open(mailtoLink, '_blank');
-      setIsApplying(false);
+  
+      setDraftEmail(data.email);
+      setSelectedProfessor(professor);
+      setIsModalOpen(false);
+      setShowApplyModal(true);
       setHasApplied(true);
     } catch (err) {
-      console.error('Error in handleComposeEmail:', err);
+      console.error('Error generating email draft:', err);
       alert('An error occurred while generating your email.');
+    } finally {
       setIsApplying(false);
     }
   };
+
+  const handleMailto = () => {
+    if (!selectedProfessor) return;
+  
+    // split off the Subject: line
+    const lines = draftEmail.split('\n');
+    let subject = '';
+    let body = '';
+    let seenSubject = false;
+  
+    for (const line of lines) {
+      if (!seenSubject && line.toLowerCase().startsWith('subject:')) {
+        subject = line.replace(/^[sS]ubject:/, '').trim();
+        seenSubject = true;
+      } else if (seenSubject) {
+        body += line + '\n';
+      }
+    }
+  
+    // fallback if no explicit Subject: line
+    if (!subject) {
+      subject = `Inquiry about research opportunities`;
+      body = draftEmail;
+    }
+  
+    const mailto = `mailto:${selectedProfessor.email}` +
+      `?subject=${encodeURIComponent(subject)}` +
+      `&body=${encodeURIComponent(body)}`;
+  
+    // open the user's mail client
+    window.open(mailto, '_blank');
+  };
+  
 
   if (!isLoaded || !isSignedIn || isDataLoading) {
     return (
@@ -406,15 +442,17 @@ export default function ResearchOpportunities() {
         )}
       </main>
 
-      {/* Professor Modal with updated apply button props and backup mailto link */}
-      <ProfessorModal
-        professor={selectedProfessor}
-        isOpen={isModalOpen}
+       <TabbedApplyModal
+        professor={selectedProfessor!}
+        isOpen={isModalOpen || showApplyModal}
         onClose={closeModal}
         onApply={() => selectedProfessor && handleComposeEmail(selectedProfessor)}
         isApplying={isApplying}
         hasApplied={hasApplied}
         backupMailtoLink={backupMailtoLink}
+        draftEmail={draftEmail}
+        setDraftEmail={setDraftEmail}
+        handleMailto={handleMailto}
         isDark={isDark}
       />
 
