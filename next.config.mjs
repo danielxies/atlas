@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-      domains: ['assets.aceternity.com', 'img.freepik.com'], // Add your image domain here
+      domains: ['assets.aceternity.com', 'img.freepik.com', 'img.clerk.com'], // Add your image domain here
     },
     webpack: (config) => {
       config.resolve.alias = {

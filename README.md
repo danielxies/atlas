@@ -33,7 +33,12 @@
   <a href="#roadmap">Roadmap</a>
 </p>
 
-![screenshot](/public/scenic.jpg)
+<p align="center">
+  <video width="100%" autoplay loop muted playsinline>
+    <source src="/public/videos/landing.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</p>
 
 ## Key Features
 
@@ -125,6 +130,4 @@ Future features planned for Atlas:
 
 ---
 
-> [atlas.research.app](https://atlas.research.app) &nbsp;&middot;&nbsp;
-> GitHub [@atlasresearch](https://github.com/atlasresearch) &nbsp;&middot;&nbsp;
-> Twitter [@atlasresearch](https://twitter.com/atlasresearch)
+> [https://atlas.meriedith.com](https://atlas.meriedith.com)

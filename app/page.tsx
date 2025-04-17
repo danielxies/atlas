@@ -121,7 +121,7 @@ export default function LandingPage() {
           </h1>
           
           <p className={`text-xl ${isDark ? 'text-[#d1cfbf]' : 'text-gray-700'} mb-10 max-w-3xl mx-auto font-vastago`}>
-            Get personalized research recommendations, craft tailored applications, autofill and track your research applications. We&apos;re here for every step of the process.
+            Get personalized research recommendations, craft tailored applications, autofill and track your research interests. We&apos;re here for every step of the process.
           </p>
           
           {/* CTA Button */}

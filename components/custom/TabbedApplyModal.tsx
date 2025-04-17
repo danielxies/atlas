@@ -32,6 +32,27 @@ export default function TabbedApplyModal({
 }: TabbedApplyModalProps) {
   const [activeTab, setActiveTab] = useState<'info' | 'editor'>(hasApplied ? 'editor' : 'info');
 
+  // Add effect to prevent body scrolling when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+      // Prevent scrolling on the background
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      
+      // Cleanup function to restore scrolling when modal closes
+      return () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (hasApplied) setActiveTab('editor');
   }, [hasApplied]);
@@ -47,6 +68,11 @@ export default function TabbedApplyModal({
         : 'text-gray-500'
     }`;
 
+  // Add onClick handler to prevent event propagation for modal content
+  const handleModalContentClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
@@ -54,7 +80,7 @@ export default function TabbedApplyModal({
     >
       <div
         className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-white'} rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleModalContentClick}
       >
         {/* Header */}
         <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'} flex justify-between`}>
@@ -154,52 +180,33 @@ export default function TabbedApplyModal({
                       : <span className="text-sm text-gray-500 font-vastago">None</span>}
                   </div>
                 </div>
-                {/*
-                <div>
-                  <h3 className={`text-lg font-bold ${isDark ? 'text-claude-orange' : 'text-claude-orange-dark'} font-vastago`}>
-                    Looking For Researchers
-                  </h3>
-                  <p className={`text-sm ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'} font-vastago`}>
-                    {professor.currently_looking_for}
-                  </p>
-                </div>
-                */}
                 {/* primary button */}
                 <button
-                onClick={
+                  onClick={
                     hasApplied
-                    ? () => setActiveTab('editor')     // jump to editor
-                    : onApply                          // first‑time “Apply”
-                }
-                disabled={isApplying}
-                className={`w-full px-4 py-2 rounded-md font-vastago ${
+                      ? () => setActiveTab('editor')     // jump to editor
+                      : onApply                          // first‑time "Apply"
+                  }
+                  disabled={isApplying}
+                  className={`w-full px-4 py-2 rounded-md font-vastago ${
                     isDark ? 'bg-claude-orange text-[#1a1a1a]' : 'bg-claude-orange text-white'
-                }`}
+                  }`}
                 >
-                {isApplying ? 'Generating...' : hasApplied ? 'Edit Email' : 'Generate Email'}
+                  {isApplying ? 'Generating...' : hasApplied ? 'Edit Email' : 'Generate Email'}
                 </button>
 
                 {/* always show mail app button once we have a draft */}
                 {draftEmail && (
-                <button
+                  <button
                     onClick={handleMailto}
                     className="w-full mt-2 px-4 py-2 rounded-md font-vastago bg-claude-orange-dark text-white"
-                >
+                  >
                     Send via Mail App
-                </button>
+                  </button>
                 )}
 
                 {/* manual link fallback */}
                 {backupMailtoLink && draftEmail && (
-                <p className={`text-xs mt-2 ${isDark ? 'text-[#d1cfbf]/60' : 'text-gray-500'} font-vastago`}>
-                    <a href={backupMailtoLink} target="_blank" rel="noopener noreferrer" className="underline">
-                    Click to email manually
-                    </a>
-                </p>
-                )}
-
-
-                {backupMailtoLink && hasApplied && (
                   <p className={`text-xs mt-2 ${isDark ? 'text-[#d1cfbf]/60' : 'text-gray-500'} font-vastago`}>
                     <a href={backupMailtoLink} target="_blank" rel="noopener noreferrer" className="underline">
                       Click to email manually

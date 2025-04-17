@@ -107,7 +107,7 @@ export default function RootLayout({
       <html lang="en" className={`${alice.variable} ${vastago.variable}`}>
         <head>
           <title>Atlas</title>
-          <meta name="description" content="Get personalized research recommendations, craft tailored applications, and track your research applications." />
+          <meta name="description" content="Get personalized research recommendations, craft tailored applications, and track your research interests." />
           <link rel="icon" href="/icon.png" />
           <script dangerouslySetInnerHTML={{ __html: initialLoadingScript }} />
         </head>
