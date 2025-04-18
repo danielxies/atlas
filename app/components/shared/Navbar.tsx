@@ -43,6 +43,16 @@ const Navbar: React.FC<NavbarProps> = ({ isDark, setIsDark }) => {
             Dashboard
           </Link>
           <Link 
+            href="/search" 
+            className={`${
+              pathname === '/dashboard' 
+                ? `${isDark ? 'text-claude-orange' : 'text-claude-orange'} font-medium` 
+                : `${isDark ? 'text-[#d1cfbf]' : 'text-black'} hover:text-claude-orange`
+            } transition font-vastago px-3`}
+          >
+            Explore
+          </Link>
+          <Link 
             href="/opportunities" 
             className={`${
               pathname === '/opportunities' 
@@ -50,7 +60,7 @@ const Navbar: React.FC<NavbarProps> = ({ isDark, setIsDark }) => {
                 : `${isDark ? 'text-[#d1cfbf]' : 'text-black'} hover:text-claude-orange`
             } transition font-vastago px-3`}
           >
-            Opportunities
+            Professors
           </Link>
           <Link 
             href="/profile" 
