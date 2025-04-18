@@ -23,6 +23,7 @@ export default function LogoTicker({
   const innerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isHovering, setIsHovering] = useState(false);
+  const [animationStyle, setAnimationStyle] = useState<React.CSSProperties>({});
 
   useEffect(() => {
     if (!scrollerRef.current || !innerRef.current) return;
@@ -56,7 +57,7 @@ export default function LogoTicker({
     return () => {
       document.removeEventListener('wheel', preventGlobalScroll);
     };
-  }, [isHovering]);
+  }, []);
 
   // Handle mouse enter/leave for the entire component
   const handleMouseEnter = () => setIsHovering(true);
@@ -93,7 +94,6 @@ export default function LogoTicker({
           animation: scroll ${speed}s linear infinite;
           animation-direction: ${direction === 'rtl' ? 'normal' : 'reverse'};
           will-change: transform;
-          ${isHovering ? 'animation-play-state: paused;' : ''} /* Pause animation when hovering */
         }
         
         .logo-item {
@@ -160,13 +160,14 @@ export default function LogoTicker({
           <div 
             ref={innerRef}
             className={cn(
-              "flex items-center whitespace-nowrap transform-gpu",
-              !isHovering && "logo-scroll",
+              "flex items-center whitespace-nowrap transform-gpu logo-scroll",
+              isHovering && "animation-play-state-paused",
               "transform-style-preserve-3d"
             )}
             style={{
               // Start with some spacing to prevent initial jump
               paddingLeft: '6px', // Reduced padding to bring logos closer
+              animationPlayState: isHovering ? 'paused' : 'running',
             }}
           >
             {logos.map((logo, idx) => {

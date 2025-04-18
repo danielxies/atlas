@@ -158,7 +158,7 @@ export default function LandingPage() {
             <div className={`absolute inset-0 ${isDark ? 'bg-gradient-to-b from-[#1a1a1a]/20 via-transparent to-[#1a1a1a]/20' : 'bg-gradient-to-b from-[#e8e6d9]/20 via-transparent to-[#e8e6d9]/20'} backdrop-blur-[1px] z-0`}></div>
             <LogoTicker 
               logos={sampleLogos}
-              speed={25}
+              speed={30}
               direction="rtl"
               isDark={isDark}
             />
