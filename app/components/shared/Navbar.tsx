@@ -32,6 +32,8 @@ const Navbar: React.FC<NavbarProps> = ({ isDark, setIsDark }) => {
 
         {/* Right Side - Links, Theme Toggle and UserButton */}
         <div className="flex items-center gap-3">
+          {/* Dashboard link commented out for now */}
+          {/*
           <Link 
             href="/dashboard" 
             className={`${
@@ -42,6 +44,7 @@ const Navbar: React.FC<NavbarProps> = ({ isDark, setIsDark }) => {
           >
             Dashboard
           </Link>
+          */}
           <Link 
             href="/opportunities" 
             className={`${
