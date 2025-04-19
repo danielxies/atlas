@@ -19,12 +19,11 @@ const ProfileStrength: React.FC<ProfileStrengthProps> = ({ isDark, profileStreng
   // These items would ideally come from props, but for now we'll hardcode them
   const profileItems: ProfileItem[] = [
     { id: 'contact', label: 'Add your contact info', percentage: 10, completed: true },
-    { id: 'education', label: 'Add your education journey', percentage: 10, completed: true },
-    { id: 'experience', label: 'Add your work experience', percentage: 20, completed: true },
-    { id: 'resume', label: 'Add your resume', percentage: 10, completed: true },
-    { id: 'links', label: 'Add your personal links', percentage: 10, completed: true },
+    { id: 'education', label: 'Add your education journey', percentage: 15, completed: true },
+    { id: 'experience', label: 'Add your work experience', percentage: 25, completed: true },
+    { id: 'resume', label: 'Add your resume', percentage: 15, completed: true },
+    { id: 'links', label: 'Add your personal links', percentage: 15, completed: true },
     { id: 'skills', label: 'Add your skills', percentage: 10, completed: true },
-    { id: 'preferences', label: 'Fill out your job preferences', percentage: 20, completed: false },
     { id: 'employment', label: 'Fill out your employment info', percentage: 10, completed: true }
   ];
   

@@ -2,43 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useUser, UserButton } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
-import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '../lib/hooks/useTheme';
-import { alice, vastago } from '../fonts';
-import OpportunityModal, { ResearchOpportunity } from '@/components/custom/OpportunityModal';
-import OpportunityCard from '@/components/custom/OpportunityCard';
-import ProfessorCard, { Professor } from '@/components/custom/ProfessorCard';
-import TabbedApplyModal from '@/components/custom/TabbedApplyModal';
+import { vastago } from '../fonts';
+import { Professor } from '@/components/custom/ProfessorCard';
 import Navbar from '../components/shared/Navbar';
-
-function calculateSimilarity(searchText: string, professor: Professor): number {
-  const searchLower = searchText.toLowerCase().trim();
-  if (!searchLower) return 0;
-  const searchTerms = searchLower.split(' ').filter(term => term.length >= 2);
-  if (searchTerms.length === 0) return 0;
-  let score = 0;
-  for (const term of searchTerms) {
-    if (professor.name.toLowerCase().includes(term)) score += 5;
-    if (professor.department.toLowerCase().includes(term)) score += 4;
-    if (professor.email.toLowerCase().includes(term)) score += 4;
-    if (professor.research_areas.some(area => area.toLowerCase().includes(term))) score += 3;
-    if (professor.preferred_majors.some(major => major.toLowerCase().includes(term))) score += 3;
-    if (professor.research_description.toLowerCase().includes(term)) score += 2;
-    if (professor.cs_subdomain.toLowerCase().includes(term)) score += 2;
-    if (professor.currently_looking_for.toLowerCase().includes(term)) score += 1;
-  }
-  if (professor.name.toLowerCase() === searchLower) score += 3;
-  if (professor.department.toLowerCase() === searchLower) score += 2;
-  if (professor.email.toLowerCase() === searchLower) score += 2;
-  if (professor.research_areas.some(area => area.toLowerCase() === searchLower)) score += 2;
-  if (professor.preferred_majors.some(major => major.toLowerCase() === searchLower)) score += 2;
-  console.log(`Professor: ${professor.name}, Score: ${score}`);
-  return score;
-}
+import TabbedApplyModal from '@/components/custom/TabbedApplyModal';
+import { updateAppliedProfessors, generateEmailDraft, createMailtoLink } from '@/utils/emailUtils';
+import Image from 'next/image';
 
 export default function ResearchOpportunities() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -49,13 +21,9 @@ export default function ResearchOpportunities() {
   const [professors, setProfessors] = useState<Professor[]>([]);
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
-  const [filteredProfessors, setFilteredProfessors] = useState<Professor[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
-  const [showFilterModal, setShowFilterModal] = useState(false);
-
-  // New state variables for user profile additional fields
+  
+  // User profile state
   const [resumeUrl, setResumeUrl] = useState('');
   const [linkedin, setLinkedin] = useState('');
   const [github, setGithub] = useState('');
@@ -67,16 +35,13 @@ export default function ResearchOpportunities() {
   const [email, setEmail] = useState('');
   const [resumeText, setResumeText] = useState('');
   const [subscribed, setSubscribed] = useState(false);
-  // Added new fields for university and major
   const [university, setUniversity] = useState('');
   const [major, setMajor] = useState('');
 
-  // New state for apply button
+  // Email and application state
   const [isApplying, setIsApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
-  // New state for backup mailto link
   const [backupMailtoLink, setBackupMailtoLink] = useState('');
-  // New state for email editor
   const [draftEmail, setDraftEmail] = useState('');
   const [showApplyModal, setShowApplyModal] = useState(false);
 
@@ -87,7 +52,7 @@ export default function ResearchOpportunities() {
     }
   }, [isLoaded, isSignedIn, router]);
 
-  // New effect to check if profile is complete and redirect if not
+  // Check if profile is complete and redirect if not
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !user) return;
 
@@ -112,6 +77,7 @@ export default function ResearchOpportunities() {
     checkProfileCompletion();
   }, [isLoaded, isSignedIn, user, router]);
 
+  // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user?.id) return;
@@ -177,44 +143,15 @@ export default function ResearchOpportunities() {
     fetchProfessors();
   }, []);
 
-  // Filter professors based on search and department
-  useEffect(() => {
-    let filtered = [...professors];
-    if (selectedDepartment !== 'all') {
-      filtered = filtered.filter(
-        prof =>
-          prof.department.trim().toLowerCase() === selectedDepartment.trim().toLowerCase()
-      );
-    }
-    if (searchQuery.trim()) {
-      filtered = filtered
-        .map(prof => ({
-          professor: prof,
-          score: calculateSimilarity(searchQuery, prof),
-        }))
-        .filter(result => result.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 12)
-        .map(result => result.professor);
-    }
-    const uniqueResults = Array.from(
-      new Map(filtered.map(prof => [prof.profile_link, prof])).values()
-    );
-    setFilteredProfessors(uniqueResults);
-  }, [professors, searchQuery, selectedDepartment]);
-
-  // Handlers
-  const handleSearch = (query: string) => setSearchQuery(query);
-  const handleDepartmentChange = (department: string) => setSelectedDepartment(department);
+  // Event handlers
   const openModal = (professor: Professor) => {
     setSelectedProfessor(professor);
     setIsModalOpen(true);
-    // Reset apply states when opening a new modal
     setIsApplying(false);
     setHasApplied(false);
-    // Reset backup mailto link when a new professor modal is opened
     setBackupMailtoLink('');
   };
+  
   const closeModal = () => {
     setIsModalOpen(false);
     setShowApplyModal(false);
@@ -225,95 +162,34 @@ export default function ResearchOpportunities() {
     if (!user) return;
     setIsApplying(true);
   
-    // -------------------------
-    // 1. Update applied_professors in Supabase
-    // -------------------------
     try {
-      const { data: profileData, error: fetchError } = await supabase
-        .from('profiles')
-        .select('applied_professors')
-        .eq('clerk_id', user.id)
-        .single();
-  
-      if (fetchError) {
-        console.error('Error fetching applied_professors:', fetchError);
-      } else {
-        let appliedList = profileData.applied_professors || [];
-  
-        // Normalize to array
-        if (!Array.isArray(appliedList)) {
-          appliedList = appliedList
-            .split(',')
-            .map((s: string) => s.trim())
-            .filter((s: string) => s);
-        }
-  
-        const nameParts = professor.name.split(' ');
-        const professorEntry = `${nameParts[0]}|${nameParts[nameParts.length - 1]}|${professor.email}`;
-  
-        // Only add if not already applied
-        if (!appliedList.includes(professorEntry)) {
-          appliedList.push(professorEntry);
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ applied_professors: appliedList })
-            .eq('clerk_id', user.id);
-          if (updateError) {
-            console.error('Error updating applied_professors:', updateError);
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Unexpected error updating applied_professors:', err);
-    }
-  
-    // -------------------------
-    // 2. Gather user + professor details and call LLM
-    // -------------------------
-    const nameParts = professor.name.split(' ');
-    const professorForEmail = {
-      lastName: nameParts[nameParts.length - 1],
-      researchArea: professor.research_areas[0] || "the subject area",
-      researchDescription: professor.research_description || "the research description"
-    };
-  
-    const userDetails = {
-      name: user.fullName || "Your Name",
-      researchInterests: researchInterests,
-      experience: researchSummary,
-      skills: skills,
-      resumeUrl: resumeUrl,
-      linkedin: linkedin,
-      github: github,
-      otherLinks: otherLinks,
-      university: university,
-      major: major,
-    };
-  
-    try {
-      const res = await fetch('/api/generate-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          professor: professorForEmail,
-          user: userDetails,
-        }),
-      });
-  
-      const data = await res.json();
-  
-      if (!res.ok) {
-        alert('Failed to generate email: ' + data.error);
-        return;
-      }
-  
-      setDraftEmail(data.email);
+      // Update applied professors list in Supabase
+      await updateAppliedProfessors(user.id, professor);
+      
+      // Generate email draft
+      const userDetails = {
+        id: user.id,
+        fullName: user.fullName,
+        researchInterests,
+        experience: researchSummary,
+        skills,
+        resumeUrl,
+        linkedin,
+        github,
+        otherLinks,
+        university,
+        major,
+      };
+      
+      const emailContent = await generateEmailDraft(professor, userDetails);
+      
+      setDraftEmail(emailContent);
       setSelectedProfessor(professor);
       setIsModalOpen(false);
       setShowApplyModal(true);
       setHasApplied(true);
     } catch (err) {
-      console.error('Error generating email draft:', err);
+      console.error('Error in email composition process:', err);
       alert('An error occurred while generating your email.');
     } finally {
       setIsApplying(false);
@@ -322,127 +198,209 @@ export default function ResearchOpportunities() {
 
   const handleMailto = () => {
     if (!selectedProfessor) return;
-  
-    // split off the Subject: line
-    const lines = draftEmail.split('\n');
-    let subject = '';
-    let body = '';
-    let seenSubject = false;
-  
-    for (const line of lines) {
-      if (!seenSubject && line.toLowerCase().startsWith('subject:')) {
-        subject = line.replace(/^[sS]ubject:/, '').trim();
-        seenSubject = true;
-      } else if (seenSubject) {
-        body += line + '\n';
-      }
-    }
-  
-    // fallback if no explicit Subject: line
-    if (!subject) {
-      subject = `Inquiry about research opportunities`;
-      body = draftEmail;
-    }
-  
-    const mailto = `mailto:${selectedProfessor.email}` +
-      `?subject=${encodeURIComponent(subject)}` +
-      `&body=${encodeURIComponent(body)}`;
-  
-    // open the user's mail client
-    window.open(mailto, '_blank');
+    const mailtoLink = createMailtoLink(selectedProfessor.email, draftEmail);
+    window.open(mailtoLink, '_blank');
   };
-  
 
   if (!isLoaded || !isSignedIn || isDataLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#1a1a1a] text-[#d1cfbf]' : 'bg-[#e8e6d9] text-black'}`}>
-        Loading...
+        <p className="font-vastago">Loading...</p>
       </div>
     );
   }
 
+  // Get 3 random professors for opportunities display
+  const getRandomProfessors = (count: number) => {
+    if (professors.length <= count) return professors.slice(0, count);
+    
+    const shuffled = [...professors].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  };
+
+  const recommendedOpportunities = getRandomProfessors(3);
+
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-[#1a1a1a] text-[#d1cfbf]' : 'bg-[#e8e6d9] text-black'} ${alice.variable} ${vastago.variable} flex flex-col`}>
+    <div className={`min-h-screen ${isDark ? 'bg-[#1a1a1a] text-[#d1cfbf]' : 'bg-[#e8e6d9] text-black'} ${vastago.variable} flex flex-col font-vastago`}>
       {/* Header */}
       <Navbar isDark={isDark} setIsDark={setIsDark} />
+      
+      {/* Horizontal divider line */}
+      <div className={`w-full h-px ${isDark ? 'bg-[#333]' : 'bg-gray-200'}`}></div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
-        <div className="mb-8">
-          <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'} font-alice`}>Research Opportunities</h1>
-          <p className={`${isDark ? 'text-[#d1cfbf]/80' : 'text-gray-600'} font-vastago`}>
-            Discover and apply to exciting research projects across various disciplines
-          </p>
-        </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left Column - Profile Section */}
+          <div className="lg:w-1/4 font-vastago">
+            {/* Profile Card */}
+            <div className={`rounded-lg overflow-hidden shadow mb-4 ${isDark ? 'bg-[#2a2a2a] border border-[#333]' : 'bg-white border border-gray-200'}`}>
+              {/* Banner Image */}
+              <div className="h-24 bg-gradient-to-r from-blue-500 to-purple-600 relative">
+                {/* Profile Image */}
+                <div className="absolute -bottom-12 left-4">
+                  <div className={`w-24 h-24 rounded-full border-4 ${isDark ? 'border-[#2a2a2a]' : 'border-white'} overflow-hidden bg-gray-300`}>
+                    {user?.imageUrl ? (
+                      <Image 
+                        src={user.imageUrl} 
+                        alt="Profile" 
+                        width={96} 
+                        height={96} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-500">
+                        <span className="text-2xl font-bold">{user?.firstName?.charAt(0) || user?.username?.charAt(0) || '?'}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-        {/* Search and Filter Section */}
-        <div className="mb-8 flex gap-4 items-start">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              placeholder="Search by name, research area, or department..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              className={`w-full px-4 py-2 border ${isDark ? 'border-gray-700 bg-[#2a2a2a] text-[#d1cfbf]' : 'border-gray-300 bg-white text-black'} rounded-lg focus:ring-2 focus:ring-claude-orange focus:border-transparent h-[42px]`}
-            />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <svg className={`h-5 w-5 ${isDark ? 'text-[#d1cfbf]/60' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              {/* User Info */}
+              <div className="pt-14 pb-4 px-4">
+                <h2 className={`text-xl font-medium ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'}`}>
+                  {user?.fullName?.toLowerCase() || user?.firstName?.toLowerCase() || user?.username?.toLowerCase()}
+                </h2>
+                <p className={`text-sm ${isDark ? 'text-[#d1cfbf]/80' : 'text-gray-600'}`}>
+                  {university} {major && `• ${major}`}
+                </p>
+                <p className={`text-sm mt-1 ${isDark ? 'text-[#d1cfbf]/60' : 'text-gray-500'}`}>
+                  {researchInterests.length > 0 ? 
+                    `Interested in: ${researchInterests.slice(0, 2).join(', ')}${researchInterests.length > 2 ? '...' : ''}` : 
+                    'Research interests not specified'}
+                </p>
+              </div>
+            </div>
+
+            {/* My Jobs Section */}
+            <div className={`rounded-lg shadow ${isDark ? 'bg-[#2a2a2a] border border-[#333]' : 'bg-white border border-gray-200'}`}>
+              <div className="p-4">
+                <h3 className={`text-lg font-medium ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'} mb-2`}>
+                  My Jobs
+                </h3>
+                
+                {/* Tabs */}
+                <div className={`flex border-b ${isDark ? 'border-gray-700' : 'border-gray-200'} mb-3`}>
+                  <button 
+                    className={`pb-2 px-4 text-sm border-b-2 ${isDark ? 'text-claude-orange border-claude-orange' : 'text-claude-orange border-claude-orange'}`}
+                  >
+                    Saved
+                  </button>
+                </div>
+                
+                {/* Empty state for saved jobs */}
+                <div className={`py-8 text-center ${isDark ? 'text-[#d1cfbf]/60' : 'text-gray-500'}`}>
+                  <div className="inline-block mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm">No saved opportunities</p>
+                  <p className="text-xs mt-1">Save opportunities to view them later</p>
+                </div>
+              </div>
             </div>
           </div>
-          
-          {/* Filter Button */}
-          <button
-            onClick={() => setShowFilterModal(true)}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 h-[42px] ${
-              isDark 
-                ? (selectedDepartment !== 'all' ? 'bg-claude-orange text-[#1a1a1a]' : 'bg-[#3a3a3a] text-[#d1cfbf]') 
-                : (selectedDepartment !== 'all' ? 'bg-claude-orange text-white' : 'bg-gray-200 text-gray-800')
-            }`}
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-            </svg>
-            Filters {selectedDepartment !== 'all' && '(1)'}
-          </button>
+
+          {/* Right Column - Opportunities Listings */}
+          <div className="lg:w-3/4">
+            {/* Recommended Opportunities */}
+            <div className={`rounded-lg shadow ${isDark ? 'bg-[#2a2a2a] border border-[#333]' : 'bg-white border border-gray-200'} mb-4`}>
+              <div className="p-4">
+                <h3 className={`text-lg font-medium ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'} mb-4`}>
+                  Recommended Opportunities
+                </h3>
+
+                <div className={`${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
+                  {recommendedOpportunities.map((professor, index) => (
+                    <div 
+                      key={professor.profile_link} 
+                      className={`py-4 cursor-pointer hover:${isDark ? 'bg-[#333333]' : 'bg-gray-50'} transition rounded-md p-2 ${
+                        index < recommendedOpportunities.length - 1 ? (isDark ? 'border-b border-gray-700' : 'border-b border-gray-200') : ''
+                      }`}
+                      onClick={() => openModal(professor)}
+                    >
+                      <div className="flex">
+                        {/* Logo placeholder */}
+                        <div className={`w-12 h-12 rounded flex items-center justify-center mr-3 flex-shrink-0 ${
+                          isDark ? 'bg-[#333333] text-[#d1cfbf]' : 'bg-gray-200 text-gray-700'
+                        }`}>
+                          <span className="text-xl font-bold">
+                            {professor.department.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+
+                        {/* Opportunity details */}
+                        <div className="flex-grow">
+                          <h4 
+                            className={`text-base font-medium ${isDark ? 'text-[#d1cfbf] hover:text-claude-orange' : 'text-gray-900 hover:text-claude-orange'}`}
+                          >
+                            {professor.name}
+                          </h4>
+                          <p className={`text-sm ${isDark ? 'text-[#d1cfbf]/80' : 'text-gray-600'}`}>
+                            {professor.department}
+                          </p>
+                          
+                          {/* Research areas as tags */}
+                          {professor.research_areas && professor.research_areas.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {professor.research_areas.slice(0, 3).map((area, index) => (
+                                <span 
+                                  key={index} 
+                                  className={`text-xs px-2 py-1 rounded-full ${
+                                    isDark ? 'bg-[#3a3a3a] text-[#d1cfbf]' : 'bg-[#f1f1f1] text-gray-700'
+                                  }`}
+                                >
+                                  {typeof area === 'string' ? area.replace(/[[\]']+/g, '') : ''}
+                                </span>
+                              ))}
+                              {professor.research_areas.length > 3 && (
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  isDark ? 'bg-[#333333] text-[#d1cfbf]/80' : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                  +{professor.research_areas.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Research description preview */}
+                          <p className={`text-sm mt-1 line-clamp-2 ${isDark ? 'text-[#d1cfbf]/60' : 'text-gray-500'}`}>
+                            {professor.research_description || 'No description available'}
+                          </p>
+                        </div>
+
+                        {/* Close button (just visually) */}
+                        <div className="self-start">
+                          <button className={`p-1 rounded-full ${isDark ? 'text-[#d1cfbf]/60 hover:bg-[#333333]' : 'text-gray-400 hover:bg-gray-100'}`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Show All Button */}
+                <div className="mt-6 text-center">
+                  <a href="/opportunities/all" className={`inline-flex items-center ${isDark ? 'text-[#d1cfbf]' : 'text-gray-700'}`}>
+                    <span>Show all</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {(searchQuery || selectedDepartment !== 'all') && (
-          <p className={`mt-2 mb-6 text-sm ${isDark ? 'text-[#d1cfbf]/80' : 'text-gray-700'} font-vastago`}>
-            Showing {filteredProfessors.length} unique results
-          </p>
-        )}
-
-        {isDataLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${isDark ? 'border-claude-orange' : 'border-blue-600'}`}></div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProfessors.map((professor) => (
-              <ProfessorCard
-                key={professor.profile_link}
-                professor={professor}
-                onClick={() => openModal(professor)}
-                isDark={isDark}
-              />
-            ))}
-          </div>
-        )}
       </main>
 
-       <TabbedApplyModal
+      {/* Modal */}
+      <TabbedApplyModal
         professor={selectedProfessor!}
         isOpen={isModalOpen || showApplyModal}
         onClose={closeModal}
@@ -455,134 +413,6 @@ export default function ResearchOpportunities() {
         handleMailto={handleMailto}
         isDark={isDark}
       />
-
-      {/* Filter Modal */}
-      {showFilterModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div 
-            className={`${isDark ? 'bg-[#2a2a2a] text-[#d1cfbf]' : 'bg-white text-gray-800'} rounded-lg shadow-xl p-6 w-full max-w-md`}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-semibold ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'} font-alice`}>
-                Filter Options
-              </h3>
-              <button 
-                onClick={() => setShowFilterModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {/* Department Filter */}
-              <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-[#d1cfbf]/90' : 'text-gray-700'} mb-1`}>
-                  Department
-                </label>
-                <select
-                  value={selectedDepartment}
-                  onChange={(e) => handleDepartmentChange(e.target.value)}
-                  className={`w-full p-2 rounded-md border ${
-                    isDark ? 'bg-[#333] border-gray-700 text-[#d1cfbf]' : 'bg-white border-gray-300 text-gray-900'
-                  } focus:ring-2 focus:ring-claude-orange focus:border-transparent`}
-                >
-                  <option value="all">All Departments</option>
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Biology">Biology</option>
-                  <option value="Chemistry">Chemistry</option>
-                  <option value="Physics">Physics</option>
-                  <option value="Mathematics">Mathematics</option>
-                </select>
-              </div>
-
-              {/* Subject/Research Area Tags (for future implementation) */}
-              <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-[#d1cfbf]/90' : 'text-gray-700'} mb-1`}>
-                  Research Areas
-                </label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {[
-                    'Machine Learning', 
-                    'AI', 
-                    'Data Science', 
-                    'Bioinformatics',
-                    'Quantum Computing'
-                  ].map(area => (
-                    <button 
-                      key={area}
-                      // onClick to be implemented for multiple filter selection
-                      className={`px-3 py-1 text-sm rounded-full border ${
-                        isDark 
-                          ? 'border-gray-700 bg-[#333] text-[#d1cfbf] hover:bg-[#444]' 
-                          : 'border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200'
-                      }`}
-                    >
-                      {area}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Looking For (Student Level) */}
-              <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-[#d1cfbf]/90' : 'text-gray-700'} mb-1`}>
-                  Looking For
-                </label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {[
-                    'Undergrad', 
-                    'Masters', 
-                    'PhD',
-                    'Post-doc'
-                  ].map(level => (
-                    <button 
-                      key={level}
-                      // onClick to be implemented for multiple filter selection
-                      className={`px-3 py-1 text-sm rounded-full border ${
-                        isDark 
-                          ? 'border-gray-700 bg-[#333] text-[#d1cfbf] hover:bg-[#444]' 
-                          : 'border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200'
-                      }`}
-                    >
-                      {level}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-4 flex justify-end gap-3">
-                <button
-                  onClick={() => {
-                    handleDepartmentChange('all');
-                    setShowFilterModal(false);
-                  }}
-                  className={`px-4 py-2 rounded-md ${
-                    isDark 
-                      ? 'bg-[#3a3a3a] text-[#d1cfbf] hover:bg-[#444]' 
-                      : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                  }`}
-                >
-                  Reset
-                </button>
-                <button
-                  onClick={() => setShowFilterModal(false)}
-                  className={`px-4 py-2 rounded-md ${
-                    isDark 
-                      ? 'bg-claude-orange text-[#1a1a1a]' 
-                      : 'bg-claude-orange text-white'
-                  } hover:opacity-90`}
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

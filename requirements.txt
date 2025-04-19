@@ -33,5 +33,6 @@ canvas
 react-markdown
 remark-gfm
 remark-breaks
+cheerio
 #@supabase/supabase-js
 #@clerk/nextjs/server
