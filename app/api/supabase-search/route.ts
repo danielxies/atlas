@@ -9,6 +9,32 @@ const supabase = createClient(
 );
 const openai  = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+/*
+Test this endpoint with:
+first run "npm run dev" to start the server
+curl -X POST http://localhost:3000/api/supabase-search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "query here"}' \
+  | jq -r '.output'
+*/
+
+/*
+Assumption: In Supabase you have created a stored function called `match_professors` that accepts:
+  - vector_query (vector)
+  - match_limit (int)
+and returns rows from your `professors` table ordered by closeness of their embedding.
+For example, in Supabase SQL Editor you can run:
+--------------------------------------------------------
+create or replace function match_professors(vector_query vector, match_limit int)
+returns setof professors as $$
+  select *, embedding <-> vector_query as distance
+  from professors
+  order by embedding <-> vector_query
+  limit match_limit;
+$$ language sql;
+--------------------------------------------------------
+*/
+
 export async function POST(req: Request) {
   try {
     const { query, context = "", needProfessors = true } = await req.json();
@@ -66,7 +92,7 @@ discussed. **Do not introduce or invent new professors.**
 
     const profs = (data as any[]).map(({ embedding, distance, ...p }) => p);
 
-    /* build professor bullet list & table … exactly as before */
+    /* build professor bullet list & table … exactly as before */
     const bullets = profs.map(
       (p, i) => `Professor ${i + 1}
 - **Name:** ${p.name}
@@ -101,10 +127,10 @@ ${bullets}
 
 Write a conversational answer in markdown:
 
-• Start with a short greeting that acknowledges the user’s interest.  
+• Start with a short greeting that acknowledges the user's interest.  
 • Dedicate one paragraph to each professor you want to highlight (3–5 total).  
-  – **Bold the professor’s name the first time it appears** in that paragraph.  
-  – Explain in 1–2 sentences why their research aligns with the user’s query.  
+  – **Bold the professor's name the first time it appears** in that paragraph.  
+  – Explain in 1–2 sentences why their research aligns with the user's query.  
 • Add this text "__" after each paragraph on a new line so they appear as separate paragraphs in markdown.
     `.trim();
 

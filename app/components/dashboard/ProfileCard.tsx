@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Pencil, FileText } from 'lucide-react';
+import Image from 'next/image';
 
 interface ProfileCardProps {
   isDark: boolean;
@@ -107,9 +108,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <div className="w-full md:w-1/3">
           <div className="mb-6">
             <div className="flex items-center gap-4 mb-4">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center ${isDark ? 'bg-claude-orange/20' : 'bg-claude-orange/10'} text-2xl font-semibold ${isDark ? 'text-claude-orange' : 'text-claude-orange'}`}>
-                {user.firstName?.[0]}{user.lastName?.[0]}
-              </div>
+              {user.imageUrl ? (
+                <Image 
+                  src={user.imageUrl}
+                  alt="Profile"
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+              ) : (
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${isDark ? 'bg-claude-orange/20' : 'bg-claude-orange/10'} text-2xl font-semibold ${isDark ? 'text-claude-orange' : 'text-claude-orange'}`}>
+                  {user.firstName?.[0]}{user.lastName?.[0]}
+                </div>
+              )}
               <div>
                 <h3 className={`text-xl font-semibold ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'} font-vastago`}>
                   {user.firstName} {user.lastName}

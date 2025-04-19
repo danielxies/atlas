@@ -1,31 +1,35 @@
 // Local logos from the public directory
 export const sampleLogos = [
   {
-    src: "/logos/spotify.svg",
-    alt: "Spotify"
+    src: "/logos/purdue.png",
+    alt: "Purdue University"
   },
   {
-    src: "/logos/apple.svg",
-    alt: "Apple"
+    src: "/logos/indiana.png",
+    alt: "Indiana University"
   },
   {
-    src: "/logos/amazon.svg",
-    alt: "Amazon"
+    src: "/logos/purdue.png",
+    alt: "Purdue University"
   },
   {
-    src: "/logos/microsoft.svg",
-    alt: "Microsoft"
+    src: "/logos/indiana.png",
+    alt: "Indiana University"
   },
   {
-    src: "/logos/netflix.svg",
-    alt: "Netflix"
+    src: "/logos/purdue.png",
+    alt: "Purdue University"
   },
   {
-    src: "/logos/facebook.svg",
-    alt: "Facebook"
+    src: "/logos/indiana.png",
+    alt: "Indiana University"
   },
   {
-    src: "/logos/twitter.svg",
-    alt: "Twitter"
+    src: "/logos/purdue.png",
+    alt: "Purdue University"
+  },
+  {
+    src: "/logos/indiana.png",
+    alt: "Indiana University"
   }
 ]; 

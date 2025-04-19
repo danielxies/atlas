@@ -76,27 +76,27 @@ export default function LandingPage() {
             {!isLoaded ? null : isSignedIn ? (
               <div className="flex items-center gap-4">
                 <DxButton 
-                  destination="/dashboard"
+                  destination="/opportunities"
                   bgColor={isDark ? 'bg-[#d1cfbf]' : 'bg-claude-orange'}
                   textColor={isDark ? 'text-[#1a1a1a]' : 'text-white'}
                   hoverColor={isDark ? 'hover:bg-[#c1bfaf]' : 'hover:bg-claude-orange/90'}
                   rounded="rounded-full"
                   padding="px-5 py-2"
                 >
-                  Dashboard
+                  Opportunities
                 </DxButton>
                 <UserButton afterSignOutUrl="/" />
               </div>
             ) : (
               <DxButton 
-                destination="/login"
+                destination="/opportunities"
                 bgColor={isDark ? 'bg-[#d1cfbf]' : 'bg-claude-orange'}
                 textColor={isDark ? 'text-[#1a1a1a]' : 'text-white'}
                 hoverColor={isDark ? 'hover:bg-[#c1bfaf]' : 'hover:bg-claude-orange/90'}
                 rounded="rounded-full"
                 padding="px-5 py-2"
               >
-                Dashboard
+                Opportunities
               </DxButton>
             )}
           </div>
@@ -158,7 +158,7 @@ export default function LandingPage() {
             <div className={`absolute inset-0 ${isDark ? 'bg-gradient-to-b from-[#1a1a1a]/20 via-transparent to-[#1a1a1a]/20' : 'bg-gradient-to-b from-[#e8e6d9]/20 via-transparent to-[#e8e6d9]/20'} backdrop-blur-[1px] z-0`}></div>
             <LogoTicker 
               logos={sampleLogos}
-              speed={25}
+              speed={30}
               direction="rtl"
               isDark={isDark}
             />
