@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 interface Message {
   role: "user" | "assistant";
@@ -78,6 +79,7 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   // Research-focused suggested questions
   const suggestedQuestions = [
@@ -87,13 +89,37 @@ export default function ChatPage() {
     "How do I approach professors about research collaborations?"
   ];
 
+  // Load saved query from localStorage on initial render
   useEffect(() => {
-    // Scroll to bottom when messages change
+    const savedQuery = localStorage.getItem('chatQuery');
+    if (savedQuery) {
+      setQuery(savedQuery);
+    }
+    
+    const savedChatMode = localStorage.getItem('inChatMode');
+    if (savedChatMode === 'true') {
+      setInChatMode(true);
+    }
+  }, []);
+  
+  // Save query to localStorage whenever it changes in chat mode
+  useEffect(() => {
+    if (inChatMode) {
+      localStorage.setItem('chatQuery', query);
+      localStorage.setItem('inChatMode', 'true');
+    }
+  }, [query, inChatMode]);
+  
+  // Scroll to bottom when messages change
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamedResponse]);
   
   // Effect for rotating search suggestions with animation
   useEffect(() => {
+    // Only run the search suggestion animation if not in chat mode
+    if (inChatMode) return;
+    
     const interval = setInterval(() => {
       // Add a class to trigger fade-out animation
       if (inputRef.current) {
@@ -129,7 +155,7 @@ export default function ChatPage() {
     }
     
     return () => clearInterval(interval);
-  }, [searchSuggestion]);
+  }, [searchSuggestion, inChatMode, searchSuggestions]);
   
   // Setup smooth scrolling for conversations
   useEffect(() => {
@@ -274,6 +300,8 @@ AI: ${data.output}
     setContext("");
     setInChatMode(false);
     setQuery("");
+    localStorage.removeItem('chatQuery');
+    localStorage.removeItem('inChatMode');
   };
 
   return (
