@@ -3,15 +3,11 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { OpenAI } from 'openai';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing required environment variables");
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+);
+const openai  = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 /*
 Test this endpoint with:
@@ -39,96 +35,119 @@ $$ language sql;
 --------------------------------------------------------
 */
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    // Parse the request body
-    const { query } = await request.json();
+    const { query, context = "", needProfessors = true } = await req.json();
+
     if (!query) {
       return NextResponse.json({ error: "No query provided" }, { status: 400 });
     }
 
-    // Step 1: Convert the query to an embedding
-    const embeddingResponse = await openai.embeddings.create({
+    /* ------------------------------------------------------------ *
+       1 ▼  If this is a FOLLOW‑UP (needProfessors === false)
+           just let GPT answer from the running context. No DB call.
+     * ------------------------------------------------------------ */
+    if (!needProfessors) {
+      const prompt = `
+You are still acting as a friendly Purdue research‑advisor.
+
+Conversation so far:
+${context}
+
+The user now asks:
+"${query}"
+
+Answer conversationally in markdown using only the information already
+discussed. **Do not introduce or invent new professors.**
+      `.trim();
+
+      const chat = await openai.chat.completions.create({
+        model: "gpt-4.1-mini",
+        messages: [
+          { role: "system",
+            content: "You are a helpful research‑advisor that continues the conversation." },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 900,
+        temperature: 0.3,
+      });
+
+      return NextResponse.json({ output: chat.choices[0].message.content });
+    }
+
+    /* ------------------------------------------------------------ *
+       2 ▼  FIRST prompt of a conversation → fetch 5 matching profs
+     * ------------------------------------------------------------ */
+    const embed = await openai.embeddings.create({
       input: [query],
       model: "text-embedding-ada-002",
     });
-    const queryEmbedding = embeddingResponse.data[0].embedding;
+    const queryEmbedding = embed.data[0].embedding;
 
-    // Step 2: Use Supabase RPC to find the top 5 matching professors.
-    const { data, error: rpcError } = await supabase.rpc("match_professors", { 
+    const { data, error } = await supabase.rpc("match_professors", {
       vector_query: queryEmbedding,
-      match_limit: 5
+      match_limit : 5,
     });
-    if (rpcError) {
-      return NextResponse.json({ error: rpcError.message }, { status: 500 });
-    }
+    if (error) throw error;
 
-    // Remove the embedding (and distance) from each professor's record for cleaner output.
-    const matchedProfessors = (data as any[]).map((prof) => {
-      const { embedding, distance, ...cleaned } = prof;
-      return cleaned;
-    });
+    const profs = (data as any[]).map(({ embedding, distance, ...p }) => p);
 
-    // Step 3: Build context text from the matched professors.
-    let professorInfoText = "";
-    for (const prof of matchedProfessors as any[]) {
-      professorInfoText += `
-Name: ${prof.name}
-Department: ${prof.department}
-Research Areas: ${Array.isArray(prof.research_areas) ? prof.research_areas.join(", ") : prof.research_areas}
-Preferred Majors: ${Array.isArray(prof.preferred_majors) ? prof.preferred_majors.join(", ") : prof.preferred_majors}
-Research Description: ${prof.research_description}
-Profile Link: ${prof.profile_link}
-`;
-    }
+    /* build professor bullet list & table … exactly as before */
+    const bullets = profs.map(
+      (p, i) => `Professor ${i + 1}
+- **Name:** ${p.name}
+- **Department:** ${p.department}
+- **Research Areas:** ${Array.isArray(p.research_areas) ? p.research_areas.join(", ") : p.research_areas}
+- **Preferred Majors:** ${Array.isArray(p.preferred_majors) ? p.preferred_majors.join(", ") : p.preferred_majors}
+- **Description:** ${p.research_description}
+- **Profile:** ${p.profile_link}`
+    ).join("\n\n");
 
-    // Step 4: Construct the prompt for GPT-4.1-mini.
-    const prompt = `
-You are a friendly research advisor. A user has asked:
+    const table = [
+      "| Name | Department | Research Areas | Preferred Majors | Profile Link |",
+      "| --- | --- | --- | --- | --- |",
+      ...profs.map(
+        p => `| ${p.name} | ${p.department} | ${
+          Array.isArray(p.research_areas) ? p.research_areas.join(", ") : p.research_areas
+        } | ${
+          Array.isArray(p.preferred_majors) ? p.preferred_majors.join(", ") : p.preferred_majors
+        } | ${p.profile_link} |`
+      ),
+    ].join("\n");
+
+    const firstPrompt = `
+You are a friendly and knowledgeable Purdue research‑advisor.
+
+The user asks:
 "${query}"
 
-Below are 5 professor records from Purdue that are the best matches for this query:
-${professorInfoText}
+Here are five matching professors:
 
-Using the above information, generate a conversational recommendation that suggests the top matches. In your answer, explain briefly why these professors are a good fit, and output the recommendations in a natural and engaging style without rigid formatting. Do not include extraneous formatting (like extra separators), just a natural explanation followed by the key details for each professor.
-`;
+${bullets}
 
-    // Step 5: Get the final output from GPT-4.1-mini.
-    const completionResponse = await openai.chat.completions.create({
-      model: 'gpt-4.1-mini',
+Write a conversational answer in markdown:
+
+• Start with a short greeting that acknowledges the user's interest.  
+• Dedicate one paragraph to each professor you want to highlight (3–5 total).  
+  – **Bold the professor's name the first time it appears** in that paragraph.  
+  – Explain in 1–2 sentences why their research aligns with the user's query.  
+• Add this text "__" after each paragraph on a new line so they appear as separate paragraphs in markdown.
+    `.trim();
+
+    const chat = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
       messages: [
-        { role: "system", content: "You are an assistant that gives friendly, conversational recommendations based on research professor data." },
-        { role: "user", content: prompt }
+        { role: "system",
+          content: "You are a helpful research‑advisor that suggests professors." },
+        { role: "user", content: firstPrompt },
       ],
       max_tokens: 1200,
-      temperature: 0.2,
-      top_p: 0.9,
-      presence_penalty: 0.1,
-      frequency_penalty: 0.1,
+      temperature: 0.25,
     });
 
-    const gptOutput = completionResponse.choices[0].message.content;
-
-    // Step 5.1: Create a markdown table with basic professor information.
-    const markdownTable = `
-| Name | Department | Research Areas | Preferred Majors | Profile Link |
-| --- | --- | --- | --- | --- |
-${matchedProfessors.map(prof => 
-  `| ${prof.name || ""} | ${prof.department || ""} | ${
-    Array.isArray(prof.research_areas) ? prof.research_areas.join(", ") : (prof.research_areas || "")
-  } | ${
-    Array.isArray(prof.preferred_majors) ? prof.preferred_majors.join(", ") : (prof.preferred_majors || "")
-  } | ${prof.profile_link || ""} |`
-).join("\n")}
-`;
-
-    // Step 5.2: Append the markdown table to the GPT output.
-    const finalOutput = gptOutput + "\n\n" + "### Professor Information\n" + markdownTable;
-
-    // Step 6: Return the output (with markdown table) and a JSON of just the professor information.
-    return NextResponse.json({ output: finalOutput, professors: matchedProfessors });
+    return NextResponse.json({ output: chat.choices[0].message.content, professors: profs });
   } catch (err: any) {
     console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err.message || err }, { status: 500 });
   }
 }
