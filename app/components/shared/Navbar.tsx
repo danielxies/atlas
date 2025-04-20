@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Sun, Moon, MessageCircle } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
 
 interface NavbarProps {
@@ -65,9 +65,8 @@ const Navbar: React.FC<NavbarProps> = ({ isDark, setIsDark, children }) => {
               pathname === '/chat' 
                 ? `${isDark ? 'text-claude-orange' : 'text-claude-orange'} font-medium` 
                 : `${isDark ? 'text-[#d1cfbf]' : 'text-black'} hover:text-claude-orange`
-            } transition font-vastago px-3 flex items-center gap-1`}
+            } transition font-vastago px-3`}
           >
-            <MessageCircle size={16} />
             Chat
           </Link>
           <Link 

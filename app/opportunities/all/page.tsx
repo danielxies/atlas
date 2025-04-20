@@ -7,9 +7,10 @@ import { supabase } from '@/lib/supabase';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { vastago } from '../../fonts';
 import { Professor } from '@/components/custom/ProfessorCard';
-import Navbar from '../../components/shared/Navbar';
+import OpportunitiesNavbar from '../../components/shared/OpportunitiesNavbar';
 import { updateAppliedProfessors, generateEmailDraft, createMailtoLink } from '@/utils/emailUtils';
 import Image from 'next/image';
+import DxButton from '@/components/danielxie/dxButton';
 
 export default function AllOpportunities() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -21,6 +22,12 @@ export default function AllOpportunities() {
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'info' | 'editor'>('info');
+  
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState<string>('');
+  const [selectedMajor, setSelectedMajor] = useState<string>('');
+  const [filteredProfessors, setFilteredProfessors] = useState<Professor[]>([]);
   
   // User profile state
   const [resumeUrl, setResumeUrl] = useState('');
@@ -197,6 +204,56 @@ export default function AllOpportunities() {
     window.open(mailtoLink, '_blank');
   };
 
+  // Apply filters to professors
+  useEffect(() => {
+    if (!professors.length) return;
+    
+    // Just show all professors regardless of filters
+    setFilteredProfessors(professors);
+  }, [professors]);
+
+  // Run search functionality removed - we keep the effect for state updates
+  useEffect(() => {
+    if (professors.length) {
+      // Set all professors regardless of search query or filters
+      setFilteredProfessors(professors);
+    }
+  }, [searchQuery, selectedMajor, selectedSchool, professors]);
+
+  // Handle search functionality - now just a placeholder
+  const handleSearch = () => {
+    // Search functionality removed
+    // Just display all professors regardless of search
+    setFilteredProfessors(professors);
+  };
+
+  // Get unique departments for filter options
+  const departments = Array.from(new Set(professors.map(prof => prof.department))).sort();
+
+  // Get unique preferred majors for filter options
+  const preferredMajors = Array.from(
+    new Set(
+      professors.flatMap(prof => 
+        prof.preferred_majors.map(major => major.trim()).filter(Boolean)
+      )
+    )
+  ).sort();
+
+  // Combined unique majors and departments for filtering
+  const majorOptions = Array.from(new Set([...departments, ...preferredMajors])).sort();
+
+  const applyFilters = () => {
+    // Filter functionality removed
+    setFilteredProfessors(professors);
+  };
+
+  const resetFilters = () => {
+    setSelectedSchool('');
+    setSelectedMajor('');
+    setSearchQuery('');
+    setFilteredProfessors(professors);
+  };
+
   if (!isLoaded || !isSignedIn || isDataLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#1a1a1a] text-[#d1cfbf]' : 'bg-[#e8e6d9] text-black'}`}>
@@ -207,9 +264,32 @@ export default function AllOpportunities() {
 
   return (
     <div className={`h-screen ${isDark ? 'bg-[#1a1a1a] text-[#d1cfbf]' : 'bg-[#e8e6d9] text-black'} ${vastago.variable} flex flex-col font-vastago overflow-hidden`}>
-      {/* Header */}
-      <Navbar isDark={isDark} setIsDark={setIsDark} />
-      
+      {/* Header with search */}
+      <OpportunitiesNavbar 
+        isDark={isDark} 
+        setIsDark={setIsDark}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedSchool={selectedSchool}
+        setSelectedSchool={setSelectedSchool}
+        selectedMajor={selectedMajor}
+        setSelectedMajor={setSelectedMajor}
+        departments={majorOptions}
+        applyFilters={applyFilters}
+        resetFilters={resetFilters}
+        handleSearch={handleSearch}
+      >
+        <div className="flex items-center ml-4">
+          <Image 
+            src="/logos/purdue.png" 
+            alt="Purdue Logo" 
+            width={24} 
+            height={24}
+            className="mr-2"
+          />
+        </div>
+      </OpportunitiesNavbar>
+
       {/* Horizontal divider line */}
       <div className={`w-full h-px ${isDark ? 'bg-[#333]' : 'bg-gray-200'}`}></div>
 
@@ -220,14 +300,8 @@ export default function AllOpportunities() {
           {/* Left Column - Professor List */}
           <div className="w-[30%] h-full">
             <div className={`h-full ${isDark ? 'bg-[#161616] border-r border-[#333]' : 'bg-white border-r border-gray-200'}`}>
-              <div className="py-3 px-4">
-                <h3 className={`text-lg font-medium ${isDark ? 'text-[#d1cfbf]' : 'text-gray-900'}`}>
-                  All Opportunities
-                </h3>
-              </div>
-
-              <div className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'} h-[calc(100vh-130px)] overflow-y-auto`}>
-                {professors.map((professor) => (
+              <div className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'} h-[calc(100vh-61px)] overflow-y-auto`}>
+                {filteredProfessors.map((professor) => (
                   <div 
                     key={professor.profile_link} 
                     className={`p-4 cursor-pointer transition ${
