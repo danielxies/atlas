@@ -37,64 +37,27 @@ $$ language sql;
 
 export async function POST(req: Request) {
   try {
-    const { query, context = "", needProfessors = true } = await req.json();
+    const { query, context = "" } = await req.json();
 
     if (!query) {
       return NextResponse.json({ error: "No query provided" }, { status: 400 });
     }
 
-    /* ------------------------------------------------------------ *
-       1 ▼  If this is a FOLLOW‑UP (needProfessors === false)
-           just let GPT answer from the running context. No DB call.
-     * ------------------------------------------------------------ */
-    if (!needProfessors) {
-      const prompt = `
-You are still acting as a friendly Purdue research‑advisor.
-
-Conversation so far:
-${context}
-
-The user now asks:
-"${query}"
-
-Answer conversationally in markdown using only the information already
-discussed. **Do not introduce or invent new professors.**
-      `.trim();
-
-      const chat = await openai.chat.completions.create({
-        model: "gpt-4.1-mini",
-        messages: [
-          { role: "system",
-            content: "You are a helpful research‑advisor that continues the conversation." },
-          { role: "user", content: prompt },
-        ],
-        max_tokens: 900,
-        temperature: 0.3,
-      });
-
-      return NextResponse.json({ output: chat.choices[0].message.content });
-    }
-
-    /* ------------------------------------------------------------ *
-       2 ▼  FIRST prompt of a conversation → fetch 5 matching profs
-     * ------------------------------------------------------------ */
-    const embed = await openai.embeddings.create({
+    // 1️⃣ Always embed + fetch top 5 professors
+    const embedRes = await openai.embeddings.create({
       input: [query],
       model: "text-embedding-ada-002",
     });
-    const queryEmbedding = embed.data[0].embedding;
+    const vector_query = embedRes.data[0].embedding;
 
-    const { data, error } = await supabase.rpc("match_professors", {
-      vector_query: queryEmbedding,
-      match_limit : 5,
-    });
-    if (error) throw error;
+    const { data: profRows, error: profErr } = await supabase
+      .rpc("match_professors", { vector_query, match_limit: 5 });
 
-    const profs = (data as any[]).map(({ embedding, distance, ...p }) => p);
+    if (profErr) throw profErr;
+    const professors = (profRows as any[]).map(({ embedding, distance, ...p }) => p);
 
-    /* build professor bullet list & table … exactly as before */
-    const bullets = profs.map(
-      (p, i) => `Professor ${i + 1}
+    // 2️⃣ Build a markdown‐friendly bullet list of profs
+    const profList = professors.map((p, i) => `Professor ${i + 1}
 - **Name:** ${p.name}
 - **Department:** ${p.department}
 - **Research Areas:** ${Array.isArray(p.research_areas) ? p.research_areas.join(", ") : p.research_areas}
@@ -103,51 +66,55 @@ discussed. **Do not introduce or invent new professors.**
 - **Profile:** ${p.profile_link}`
     ).join("\n\n");
 
-    const table = [
-      "| Name | Department | Research Areas | Preferred Majors | Profile Link |",
-      "| --- | --- | --- | --- | --- |",
-      ...profs.map(
-        p => `| ${p.name} | ${p.department} | ${
-          Array.isArray(p.research_areas) ? p.research_areas.join(", ") : p.research_areas
-        } | ${
-          Array.isArray(p.preferred_majors) ? p.preferred_majors.join(", ") : p.preferred_majors
-        } | ${p.profile_link} |`
-      ),
-    ].join("\n");
-
-    const firstPrompt = `
-You are a friendly and knowledgeable Purdue research‑advisor.
-
-The user asks:
-"${query}"
-
-Here are five matching professors:
-
-${bullets}
-
-Write a conversational answer in markdown:
-
-• Start with a short greeting that acknowledges the user's interest.  
-• Dedicate one paragraph to each professor you want to highlight (3–5 total).  
-  – **Bold the professor's name the first time it appears** in that paragraph.  
-  – Explain in 1–2 sentences why their research aligns with the user's query.  
-• Add this text "__" after each paragraph on a new line so they appear as separate paragraphs in markdown.
-    `.trim();
+    // 3️⃣ Always call GPT with both context + the new profList
+    const systemMsg = {
+      role: "system" as const,
+      content: `
+    You are a friendly research advisor.
+    You’ve been given a list of professors and a question from a student. If you believe the user's question can be answered fully using the running conversation, do so without introducing new information.
+    
+    However, if you choose to include professors, follow this exact format:
+    
+    • Start with a short greeting that acknowledges the user's interest.  
+    • Dedicate one paragraph to each professor you want to highlight (3–5 total).  
+       – **Bold the professor's name the first time it appears** in that paragraph.  
+       – Explain in 1–2 sentences why their research aligns with the user's query.  
+    • Add this text "__" after each paragraph so they appear as separate paragraphs in markdown.
+    
+    Never mention professors not explicitly provided in the list.
+    `.trim()
+    };
+    
+    const userMsg = {
+      role: "user" as const,
+      content: `
+    Here is the previous conversation context (you may use it):
+    ${context || "_<no prior context>_"}
+    
+    Here are five professors you may choose to highlight:
+    ${profList}
+    
+    The user now asks:
+    "${query}"
+    
+    Respond in conversational markdown.
+    `.trim()
+    };
+    
 
     const chat = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
-      messages: [
-        { role: "system",
-          content: "You are a helpful research‑advisor that suggests professors." },
-        { role: "user", content: firstPrompt },
-      ],
+      messages: [systemMsg, userMsg],
       max_tokens: 1200,
       temperature: 0.25,
     });
 
-    return NextResponse.json({ output: chat.choices[0].message.content, professors: profs });
+    return NextResponse.json({
+      output: chat.choices[0].message.content,
+      professors
+    });
   } catch (err: any) {
-    console.error(err);
-    return NextResponse.json({ error: err.message || err }, { status: 500 });
+    console.error("Error in /api/supabase-search:", err);
+    return NextResponse.json({ error: err.message || String(err) }, { status: 500 });
   }
 }
