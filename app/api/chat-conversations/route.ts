@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       .from('conversations')
       .upsert(
         { clerk_id, name, messages },
-        { onConflict: ['clerk_id', 'name'], returning: 'representation' }
+        { onConflict: 'clerk_id,name' }
       )
       .select('*')
       .single()

@@ -143,7 +143,10 @@ async function scrapePortfolio(url: string): Promise<Record<string, any>> {
         $(el)
           .next('ul')
           .find('li')
-          .each((_, li) => projects.push($(li).text().trim()));
+          .each((_, li) => {
+            projects.push($(li).text().trim());
+            return undefined;
+          });
       }
     });
     if (projects.length) data.projects_list = projects;
@@ -188,34 +191,31 @@ export async function POST(request: NextRequest) {
 
   const scrapedData = results.reduce((acc, cur) => ({ ...acc, ...cur }), {});
 
-  // Call OpenAI and capture raw output for debugging
-  const messages = [
-    {
-      role: 'system',
-      content: 'You are a strict JSON generator. Return only valid JSON matching this exact format without any extra text or comments: {"university":"Purdue University","major":"Computer Science","linkedin_url":null,"portfolio_url":null,"github_url":null,"other_links":[],"summary_of_research_experience":null,"research_interests":[],"skills":[]}.'
-    },
-    {
-      role: 'system',
-      content: 'Do not include any additional keys or explanatory text. Only output the JSON object. Use the scraped data to populate fields, and if it contains experience or education details, generate a concise "summary_of_research_experience" based on that information.'
-    },
-    {
-      role: 'user',
-      content: `You are a profile builder. Given the following input and scraped data:
-University: ${university}
-Major: ${major}
-LinkedIn URL: ${linkedin_url}
-GitHub URL: ${github_url}
-Portfolio URL: ${portfolio_url}
-Other Links: ${other_links.join(', ')}
-Scraped Data (JSON): ${JSON.stringify(scrapedData)}
-Return a JSON object with these keys exactly: university, major, linkedin_url, portfolio_url, github_url, other_links, summary_of_research_experience, research_interests, skills. Fill missing values with null or empty arrays. Ensure you summarize research experience if available. Fill out the research_interests and skills fields to the best of your ability based on the scraped data.` 
-    }
-  ];
-
   const chat = await openai.chat.completions.create({
     model: 'gpt-4.1-mini',
-    messages,
-    temperature: 0.2
+    temperature: 0.2,
+    messages: [
+      {
+        role: 'developer',
+        content: 'You are a strict JSON generator. Return only valid JSON matching this exact format without any extra text or comments: {"university":"Purdue University","major":"Computer Science","linkedin_url":null,"portfolio_url":null,"github_url":null,"other_links":[],"summary_of_research_experience":null,"research_interests":[],"skills":[]}.'
+      },
+      {
+        role: 'developer',
+        content: 'Do not include any additional keys or explanatory text. Only output the JSON object. Use the scraped data to populate fields, and if it contains experience or education details, generate a concise "summary_of_research_experience" based on that information.'
+      },
+      {
+        role: 'user',
+        content: `You are a profile builder. Given the following input and scraped data:
+  University: ${university}
+  Major: ${major}
+  LinkedIn URL: ${linkedin_url}
+  GitHub URL: ${github_url}
+  Portfolio URL: ${portfolio_url}
+  Other Links: ${other_links.join(', ')}
+  Scraped Data (JSON): ${JSON.stringify(scrapedData)}
+  Return a JSON object with these keys exactly: university, major, linkedin_url, portfolio_url, github_url, other_links, summary_of_research_experience, research_interests, skills. Fill missing values with null or empty arrays. Ensure you summarize research experience if available. Fill out the research_interests and skills fields to the best of your ability based on the scraped data.`
+      }
+    ]
   });
   const raw = chat.choices?.[0]?.message.content ?? '';
 
