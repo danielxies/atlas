@@ -213,7 +213,8 @@ export async function POST(request: NextRequest) {
   Portfolio URL: ${portfolio_url}
   Other Links: ${other_links.join(', ')}
   Scraped Data (JSON): ${JSON.stringify(scrapedData)}
-  Return a JSON object with these keys exactly: university, major, linkedin_url, portfolio_url, github_url, other_links, summary_of_research_experience, research_interests, skills. Fill missing values with null or empty arrays. Ensure you summarize research experience if available. Fill out the research_interests and skills fields to the best of your ability based on the scraped data.`
+  Return a JSON object with these keys exactly: university, major, linkedin_url, portfolio_url, github_url, other_links, summary_of_research_experience, research_interests, skills. Fill missing values with null or empty arrays. Ensure you summarize research experience if available. Fill out the research_interests and skills fields to the best of your ability based on the scraped data.
+  If you're given the university, major, and any of the 3 or more links you should include it in the final json`
       }
     ]
   });

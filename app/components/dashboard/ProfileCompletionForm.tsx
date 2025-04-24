@@ -17,6 +17,7 @@ const ProfileCompletionForm: React.FC<ProfileCompletionFormProps> = ({ onSuccess
   const [university, setUniversity] = useState('');
   const [major, setMajor] = useState('');
   const [portfolio, setPortfolio] = useState('');
+  const [linkedin, setLinkedin] = useState('');
   const [github, setGithub] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,38 +30,70 @@ const ProfileCompletionForm: React.FC<ProfileCompletionFormProps> = ({ onSuccess
       return;
     }
 
+    if (!user) {
+      setError('User not found.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      if (!user) throw new Error('No user found');
-      
-      // Retrieve the user's email from Clerk
-      const email = user.emailAddresses?.[0]?.emailAddress || '';
-      
-      // Upsert the profile data into Supabase
-      const { error: supabaseError } = await supabase.from('profiles').upsert({
-        clerk_id: user.id,
-        email,
-        university,
-        major,
-        portfolio,
-        github,
-        created_at: new Date(),
+      // 1. Call your onboarding-completion API
+      const resp = await fetch('/api/onboarding-completion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          university,
+          major,
+          linkedin_url: linkedin,
+          github_url: github,
+          portfolio_url: portfolio,
+          other_links: []  // or collect from additional inputs if you add them
+        })
       });
-
-      if (supabaseError) throw supabaseError;
-      
-      // Call the success callback if provided
-      if (onSuccess) {
-        onSuccess();
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || 'Onboarding API failed');
       }
-      
-      // Redirect to dashboard after successful profile completion
+      const profile = await resp.json() as {
+        university: string;
+        major: string;
+        linkedin: string | null;
+        portfolio: string | null;
+        github: string | null;
+        other_links: string[];
+        summary_of_research_experience: string | null;
+        research_interests: string[];
+        skills: string[];
+      };
+
+      // 2. Upsert the returned ProfileResponse into Supabase
+      const email = user.emailAddresses?.[0]?.emailAddress || '';
+      const { error: sbError } = await supabase
+        .from('profiles')
+        .upsert({
+          clerk_id:               user.id,
+          email,
+          university:            profile.university,
+          major:                 profile.major,
+          linkedin:          profile.linkedin,
+          github:            profile.github,
+          portfolio:         profile.portfolio,
+          other_links:           profile.other_links,
+          research_summary: profile.summary_of_research_experience,
+          research_interests:    profile.research_interests,
+          skills:                profile.skills,
+          updated_at:            new Date()
+        });
+
+      if (sbError) throw sbError;
+
+      onSuccess?.();
       router.push('/dashboard');
     } catch (err: any) {
-      console.error('Error saving profile information:', err);
-      setError('Failed to save profile information. Please try again.');
+      console.error(err);
+      setError(err.message || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
@@ -172,6 +205,26 @@ const ProfileCompletionForm: React.FC<ProfileCompletionFormProps> = ({ onSuccess
             } font-vastago`}
             value={github}
             onChange={(e) => setGithub(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label 
+            htmlFor="linkedin" 
+            className={`block text-sm font-medium ${isDark ? 'text-[#d1cfbf]' : 'text-gray-700'} mb-1 font-vastago`}
+          >
+            Linkedin URL <span className="text-gray-400">(optional)</span>
+          </label>
+          <input
+            type="url"
+            id="linkedin"
+            className={`w-full px-4 py-2 rounded-md ${
+              isDark ? 'bg-[#2a2a2a] text-[#d1cfbf] border-[#3a3a3a]' : 'bg-white text-gray-900 border-gray-300'
+            } border focus:outline-none focus:ring-2 ${
+              isDark ? 'focus:ring-[#d1cfbf]/50' : 'focus:ring-blue-500/50'
+            } font-vastago`}
+            value={linkedin}
+            onChange={(e) => setLinkedin(e.target.value)}
           />
         </div>
         
