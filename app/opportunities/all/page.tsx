@@ -231,10 +231,18 @@ export default function AllOpportunities() {
       );
     }
 
-    // TODO: Add filtering logic for selectedSchool and selectedMajor here if needed later
+    // Filter by selected major
+    if (selectedMajor) {
+      currentFiltered = currentFiltered.filter(professor => 
+        (professor.department.toLowerCase() === selectedMajor.toLowerCase()) ||
+        (professor.preferred_majors.some(major => major.toLowerCase() === selectedMajor.toLowerCase()))
+      );
+    }
+
+    // TODO: Add filtering logic for selectedSchool here if needed later
 
     setFilteredProfessors(currentFiltered);
-    console.log(`Search Query: "${searchQuery}", Filtered Professors:`, currentFiltered.map(p => p.name)); // Log filtered names
+    console.log(`Search Query: "${searchQuery}", Selected Major: "${selectedMajor}", Filtered Professors:`, currentFiltered.map(p => p.name)); // Log filtered names
   }, [searchQuery, selectedMajor, selectedSchool, professors]); // Dependencies updated
 
   // Create a memoized list with unique keys to prevent rendering issues
