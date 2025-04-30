@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
@@ -209,22 +209,56 @@ export default function AllOpportunities() {
     if (!professors.length) return;
     
     // Just show all professors regardless of filters
-    setFilteredProfessors(professors);
+    // setFilteredProfessors(professors); // Removed old logic
   }, [professors]);
 
   // Run search functionality removed - we keep the effect for state updates
+  // useEffect(() => {
+  //   if (professors.length) {
+  //     // Set all professors regardless of search query or filters
+  //     setFilteredProfessors(professors);
+  //   }
+  // }, [searchQuery, selectedMajor, selectedSchool, professors]);
+
+  // Apply search and filters dynamically
   useEffect(() => {
-    if (professors.length) {
-      // Set all professors regardless of search query or filters
-      setFilteredProfessors(professors);
+    let currentFiltered = professors;
+
+    // Filter by search query (name)
+    if (searchQuery) {
+      currentFiltered = currentFiltered.filter(professor =>
+        professor.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
-  }, [searchQuery, selectedMajor, selectedSchool, professors]);
+
+    // TODO: Add filtering logic for selectedSchool and selectedMajor here if needed later
+
+    setFilteredProfessors(currentFiltered);
+    console.log(`Search Query: "${searchQuery}", Filtered Professors:`, currentFiltered.map(p => p.name)); // Log filtered names
+  }, [searchQuery, selectedMajor, selectedSchool, professors]); // Dependencies updated
+
+  // Create a memoized list with unique keys to prevent rendering issues
+  const uniqueFilteredProfessors = useMemo(() => {
+    const seenKeys = new Set<string>();
+    const uniqueList: Professor[] = [];
+    filteredProfessors.forEach(professor => {
+      const key = `${professor.profile_link}-${professor.name}`;
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key);
+        uniqueList.push(professor);
+      } else {
+        // Log duplicates that are being skipped for rendering
+        console.warn(`Skipping duplicate professor entry for key: ${key}`);
+      }
+    });
+    return uniqueList;
+  }, [filteredProfessors]);
 
   // Handle search functionality - now just a placeholder
   const handleSearch = () => {
-    // Search functionality removed
-    // Just display all professors regardless of search
-    setFilteredProfessors(professors);
+    // Search is now handled dynamically by the useEffect above
+    // This function could be repurposed or removed if no explicit search button exists
+    console.log("Search triggered (handled by useEffect)");
   };
 
   // Get unique departments for filter options
@@ -301,9 +335,9 @@ export default function AllOpportunities() {
           <div className="w-[30%] h-full">
             <div className={`h-full ${isDark ? 'bg-[#161616] border-r border-[#333]' : 'bg-white border-r border-gray-200'}`}>
               <div className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'} h-[calc(100vh-61px)] overflow-y-auto`}>
-                {filteredProfessors.map((professor) => (
+                {uniqueFilteredProfessors.map((professor) => (
                   <div 
-                    key={professor.profile_link} 
+                    key={`${professor.profile_link}-${professor.name}`}
                     className={`p-4 cursor-pointer transition ${
                       selectedProfessor?.profile_link === professor.profile_link
                         ? isDark 
