@@ -88,16 +88,13 @@ export default function LandingPage() {
                 <UserButton afterSignOutUrl="/" />
               </div>
             ) : (
-              <DxButton 
-                destination="/opportunities"
-                bgColor={isDark ? 'bg-[#d1cfbf]' : 'bg-claude-orange'}
-                textColor={isDark ? 'text-[#1a1a1a]' : 'text-white'}
-                hoverColor={isDark ? 'hover:bg-[#c1bfaf]' : 'hover:bg-claude-orange/90'}
-                rounded="rounded-full"
-                padding="px-5 py-2"
-              >
-                Opportunities
-              </DxButton>
+              <SignInButton mode="modal">
+                <button
+                  className={`px-5 py-2 rounded-full ${isDark ? 'bg-[#d1cfbf] text-[#1a1a1a] hover:bg-[#c1bfaf]' : 'bg-claude-orange text-white hover:bg-claude-orange/90'} transition-colors`}
+                >
+                  Login
+                </button>
+              </SignInButton>
             )}
           </div>
         </div>
@@ -126,17 +123,27 @@ export default function LandingPage() {
           
           {/* CTA Button */}
           <div className="flex justify-center mb-24">
-            <DxButton 
-              destination={isSignedIn ? "/dashboard" : "/signup"}
-              bgColor={isDark ? 'bg-[#d1cfbf]' : 'bg-claude-orange'}
-              textColor={isDark ? 'text-[#1a1a1a]' : 'text-white'}
-              hoverColor={isDark ? 'hover:bg-[#c1bfaf]' : 'hover:bg-claude-orange/90'}
-              shadow="shadow-md"
-              padding="px-8 py-3"
-              rounded="rounded-full"
-            >
-              Sign Up — It&apos;s Free!
-            </DxButton>
+            {isSignedIn ? (
+              <DxButton 
+                destination="/dashboard"
+                bgColor={isDark ? 'bg-[#d1cfbf]' : 'bg-claude-orange'}
+                textColor={isDark ? 'text-[#1a1a1a]' : 'text-white'}
+                hoverColor={isDark ? 'hover:bg-[#c1bfaf]' : 'hover:bg-claude-orange/90'}
+                shadow="shadow-md"
+                padding="px-8 py-3"
+                rounded="rounded-full"
+              >
+                Go to Dashboard
+              </DxButton>
+            ) : (
+              <SignInButton mode="modal">
+                <button
+                  className={`px-8 py-3 rounded-full shadow-md ${isDark ? 'bg-[#d1cfbf] text-[#1a1a1a] hover:bg-[#c1bfaf]' : 'bg-claude-orange text-white hover:bg-claude-orange/90'} transition-colors`}
+                >
+                  Get Started Now
+                </button>
+              </SignInButton>
+            )}
           </div>
           
           {/* Video Demo Section - Using the updated component */}
@@ -201,17 +208,27 @@ export default function LandingPage() {
                 dealbreakers and we&apos;ll match you with roles that fit.
               </p>
               
-              <DxButton 
-                destination="/matches"
-                bgColor={isDark ? 'bg-[#d1cfbf]' : 'bg-claude-orange'}
-                textColor={isDark ? 'text-[#1a1a1a]' : 'text-white'}
-                hoverColor={isDark ? 'hover:bg-[#c1bfaf]' : 'hover:bg-claude-orange/90'}
-                shadow="shadow-md"
-                padding="px-8 py-3"
-                rounded="rounded-full"
-              >
-                Get Matched Now
-              </DxButton>
+              {isSignedIn ? (
+                <DxButton 
+                  destination="/opportunities"
+                  bgColor={isDark ? 'bg-[#d1cfbf]' : 'bg-claude-orange'}
+                  textColor={isDark ? 'text-[#1a1a1a]' : 'text-white'}
+                  hoverColor={isDark ? 'hover:bg-[#c1bfaf]' : 'hover:bg-claude-orange/90'}
+                  shadow="shadow-md"
+                  padding="px-8 py-3"
+                  rounded="rounded-full"
+                >
+                  Find Opportunities
+                </DxButton>
+              ) : (
+                <SignInButton mode="modal">
+                  <button
+                    className={`px-8 py-3 rounded-full shadow-md ${isDark ? 'bg-[#d1cfbf] text-[#1a1a1a] hover:bg-[#c1bfaf]' : 'bg-claude-orange text-white hover:bg-claude-orange/90'} transition-colors`}
+                  >
+                    Get Started Now
+                  </button>
+                </SignInButton>
+              )}
             </div>
             
             <div className={`${isDark ? 'bg-[#2a2a2a]' : 'bg-white'} rounded-xl shadow-lg overflow-hidden p-4`}>
@@ -281,17 +298,13 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             {/* Only show Create Free Account if not signed in */}
             {!isSignedIn && (
-              <DxButton 
-                destination={isSignedIn ? "/dashboard" : "/signup"}
-                bgColor={isDark ? 'bg-[#d1cfbf]' : 'bg-white'}
-                textColor={isDark ? 'text-[#1a1a1a]' : 'text-claude-orange'}
-                hoverColor={isDark ? 'hover:bg-[#c1bfaf]' : 'hover:bg-gray-100'}
-                shadow="shadow-md"
-                padding="px-8 py-3"
-                rounded="rounded-full"
-              >
-                Create Free Account
-              </DxButton>
+              <SignInButton mode="modal">
+                <button
+                  className={`px-8 py-3 rounded-full shadow-md ${isDark ? 'bg-[#d1cfbf] text-[#1a1a1a] hover:bg-[#c1bfaf]' : 'bg-white text-claude-orange hover:bg-gray-100'} transition-colors`}
+                >
+                  Create Free Account
+                </button>
+              </SignInButton>
             )}
             <DxButton 
               destination="/opportunities"
