@@ -30,6 +30,9 @@ tzdata==2025.2
 urllib3==2.2.3
 pdfjs-dist
 canvas
-
+react-markdown
+remark-gfm
+remark-breaks
+cheerio
 #@supabase/supabase-js
 #@clerk/nextjs/server

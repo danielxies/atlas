@@ -1,4 +1,4 @@
-// app/api/supabase-search/route.ts
+// ── app/api/supabase-search/route.ts ──────────────────────────────
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { OpenAI } from 'openai';
